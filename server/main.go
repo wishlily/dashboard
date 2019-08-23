@@ -9,7 +9,7 @@ import (
 	"github.com/elazarl/go-bindata-assetfs"
 	"github.com/gin-gonic/contrib/static"
 	"github.com/gin-gonic/gin"
-	"github.com/wadahiro/gin-react-boilerplate/server/controllers"
+	"github.com/wishlily/dashboard/server/controllers"
 )
 
 type binaryFileSystem struct {

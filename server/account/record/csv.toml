@@ -1,0 +1,18 @@
+[csv]
+path = "."
+
+    [csv.types]
+    O = "支出"
+    I = "收入"
+    L = "借出"
+    B = "借入"
+    R = "转账"
+    X = "修正"
+    U = "unkownn"
+
+    [csv.tags]
+    member   = "成员"
+    proj     = "项目"
+    unit     = "份额"
+    deadline = "截至日期"
+    unkown   = "其他"
