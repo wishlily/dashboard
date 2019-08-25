@@ -1,7 +1,15 @@
 package record
 
 import (
+	"encoding/csv"
+	"fmt"
+	"io/ioutil"
+	"os"
+	"path"
 	"strings"
+	"time"
+
+	"github.com/jszwec/csvutil"
 )
 
 type format struct {
@@ -44,4 +52,88 @@ func (f format) class() []string {
 
 func (f format) account() []string {
 	return f.split(f.Account)
+}
+
+func (f format) time() time.Time {
+	t, _ := time.ParseInLocation("2006-01-02 15:04:05", f.Time, time.Local)
+	return t
+}
+
+type reader struct {
+	f string
+}
+
+// if file not exist create one & header
+func (r reader) is() error {
+	if _, err := os.Stat(r.f); err != nil && !os.IsExist(err) {
+		w := writer{r.f}
+		os.MkdirAll(path.Dir(r.f), 0644)
+		os.Create(r.f)
+		return w.header()
+	}
+	return nil
+}
+
+func (r reader) all() ([]format, error) {
+	if err := r.is(); err != nil {
+		return nil, err
+	}
+	bytes, err := ioutil.ReadFile(r.f)
+	if err != nil {
+		return nil, err
+	}
+	var data []format
+	if err := csvutil.Unmarshal(bytes, &data); err != nil {
+		return nil, err
+	}
+	return data, nil
+}
+
+type writer struct {
+	f string
+}
+
+func (w writer) header() error {
+	hr, err := csvutil.Header(format{}, "csv")
+	if err != nil {
+		return err
+	}
+	f, err := os.OpenFile(w.f, os.O_WRONLY, 0644)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	fmt.Fprintf(f, "%s\n", strings.Join(hr, ","))
+	return nil
+}
+
+func (w writer) append(data format) error {
+	f, err := os.OpenFile(w.f, os.O_APPEND|os.O_WRONLY, os.ModeAppend)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	ptr := csv.NewWriter(f)
+	enc := csvutil.NewEncoder(ptr)
+	enc.AutoHeader = false
+	if err := enc.Encode(data); err != nil {
+		return err
+	}
+	ptr.Flush()
+	if err := ptr.Error(); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (w writer) all(data []format) error {
+	content, err := csvutil.Marshal(data)
+	if err != nil {
+		return err
+	}
+	if err := ioutil.WriteFile(w.f, content, 0644); err != nil {
+		return err
+	}
+	return nil
 }

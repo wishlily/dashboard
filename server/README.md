@@ -1,3 +1,17 @@
+# Quote
+- [gin-react-boilerplate](https://github.com/wadahiro/gin-react-boilerplate)
+
+# setup
+
+```shell
+go get -u github.com/jteeuwen/go-bindata/...
+go get -u github.com/elazarl/go-bindata-assetfs/...
+```
+
+# package assets
+
+    $GOPATH/bin/go-bindata -o ./bindata.go ../assets/...
+
 # config
 
 ```

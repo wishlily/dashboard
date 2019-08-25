@@ -1,6 +1,8 @@
 package record
 
 import (
+	"io/ioutil"
+	"os"
 	"reflect"
 	"testing"
 )
@@ -60,6 +62,155 @@ func TestFmtAccount(t *testing.T) {
 		v := f.account()
 		if !reflect.DeepEqual(v, tc.v) {
 			t.Fatalf("%d: class should be %v : %v", i, tc.v, v)
+		}
+	}
+}
+
+func TestFmtTime(t *testing.T) {
+	var f format
+	for i, tc := range []struct {
+		v string
+	}{
+		{"2019-08-25 12:09:31"},
+		{"1870-01-01 08:00:00"},
+	} {
+		f.Time = tc.v
+		v := f.time()
+		if v.Format("2006-01-02 15:04:05") != tc.v {
+			t.Fatalf("%d: should be %v: %v", i, tc.v, v)
+		}
+	}
+}
+
+func TestReaderAll(t *testing.T) {
+	const f = "test/t1.csv"
+	r := reader{f}
+	defer testCSVClr(t, f)
+
+	for i, tc := range []struct {
+		b []byte
+		v []format
+	}{
+		{
+			[]byte(`type,time,class,account,amount,note
+1,2,3,4,5.6,7
+a,b,c,d,-5.6,e`),
+			[]format{
+				format{"1", "2", "3", "4", 5.6, "7"},
+				format{"a", "b", "c", "d", -5.6, "e"},
+			},
+		},
+		{ // no header read none
+			[]byte(`1,2,3,4,5.6,7
+a,b,c,d,-5.6,e`),
+			[]format{format{}},
+		},
+	} {
+		testCSVSet(t, f, tc.b)
+		v, err := r.all()
+		if err != nil {
+			t.Fatalf("%d: read all %v", i, err)
+		}
+		if !reflect.DeepEqual(v, tc.v) {
+			t.Fatalf("%d: read should be %v: %v", i, tc.v, v)
+		}
+	}
+}
+
+func TestWriterHeader(t *testing.T) {
+	const f = "test/t2.csv"
+	f1, _ := os.Create(f)
+	f1.Close()
+	defer os.Remove(f)
+
+	w := writer{f}
+	if err := w.header(); err != nil {
+		t.Fatal(err)
+	}
+	v, err := ioutil.ReadFile(f)
+	if err != nil {
+		t.Fatal(err)
+	}
+	h := []byte(`type,time,class,account,amount,note
+`)
+	if !reflect.DeepEqual(h, v) {
+		t.Fatalf("header: %s", string(v))
+	}
+}
+
+func TestReaderIs(t *testing.T) {
+	const f = "test/t3.csv"
+	defer os.Remove(f)
+
+	r := reader{f}
+	v, err := r.all()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if a := []format{}; !reflect.DeepEqual(a, v) {
+		t.Fatal(v)
+	}
+}
+
+func TestWriterAll(t *testing.T) {
+	const (
+		f    = "test/t4.csv"
+		text = `type,time,class,account,amount,note
+1,2,3,4,5.6,7
+a,b,c,d,-5.6,e`
+	)
+	testCSVSet(t, f, []byte(text))
+	defer testCSVClr(t, f)
+	w := writer{f}
+	r := reader{f}
+
+	a := []format{
+		format{"A", "B", "C", "D", 1.1, "E"},
+		format{"f", "g", "h", "i", -2.2, "j"},
+	}
+	if err := w.all(a); err != nil {
+		t.Fatal(err)
+	}
+	v, err := r.all()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !reflect.DeepEqual(v, a) {
+		t.Fatal(v)
+	}
+}
+
+func TestWriterAppend(t *testing.T) {
+	const (
+		f = "test/t5.csv"
+	)
+	defer os.Remove(f)
+	w := writer{f}
+	r := reader{f}
+
+	if err := w.append(format{}); err == nil {
+		t.Fatal("append not exist file should be error")
+	}
+
+	r.all()
+	l := []format{}
+	for i, tc := range []struct {
+		a format
+	}{
+		{format{"f", "g", "h", "i", 2.2, "j"}},
+		{format{"A", "B", "C", "D", 1.1, "E"}},
+		{format{"1", "2", "3", "4", 5.6, "7"}},
+	} {
+		l = append(l, tc.a)
+		if err := w.append(tc.a); err != nil {
+			t.Fatalf("%d: append %v", i, err)
+		}
+		v, err := r.all()
+		if err != nil {
+			t.Fatalf("%d: read %v", i, err)
+		}
+		if !reflect.DeepEqual(l, v) {
+			t.Fatalf("%d: cmp %v", i, v)
 		}
 	}
 }

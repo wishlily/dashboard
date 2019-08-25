@@ -1,27 +1,51 @@
 package record
 
 import (
-	"os"
 	"testing"
-	"time"
 )
 
-func TestWatcher(t *testing.T) {
-	path1 := "./tmp/"
-	os.MkdirAll(path1, 0777)
-	defer os.RemoveAll(path1)
-	if err := SetPath(path1); err != nil {
-		t.Fatal(err)
+func TestDBPath(t *testing.T) {
+	db := database{}
+	for i, tc := range []struct {
+		a string
+		v string
+	}{
+		// {"./", "."},
+		// {"", "."},
+		// {"../", ".."},
+		{"/root", "/root"},
+		{"/root/", "/root"},
+	} {
+		if err := db.setPath(tc.a); err != nil {
+			t.Fatalf("%d:%v", i, err)
+		}
+		if tc.v != db.path {
+			t.Fatalf("%d: set path should be %v: %v", i, tc.v, db.path)
+		}
 	}
-	if err := SetPath("."); err != nil {
-		t.Fatal(err)
-	}
-	file1 := path1 + "/1.txt"
-	if f, err := os.Create(file1); err != nil {
-		f.Close()
-	}
-	time.Sleep(10 * time.Second)
 }
+
+func TestDBCSV(t *testing.T) {
+	db := database{path: "/root"}
+	for i, tc := range []struct {
+		y int
+		v string
+	}{
+		{0, "/root/0000.csv"},
+		{30, "/root/0030.csv"},
+		{2016, "/root/2016.csv"},
+	} {
+		v := db.csv(tc.y)
+		if v != tc.v {
+			t.Fatalf("%d: should be %v: %v", i, tc.v, v)
+		}
+	}
+}
+
+// func TestDBLoad(t *testing.T) {
+// 	db := database{min: 2016, max: 2016}
+// 	db.load()
+// }
 
 // const _TEST_CSV_FILENAME = "csv-test.tmp"
 

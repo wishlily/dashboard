@@ -1,73 +1,70 @@
 package record
 
 import (
+	"fmt"
 	"path/filepath"
-	"strings"
 	"sync"
-
-	"github.com/fsnotify/fsnotify"
-	log "github.com/sirupsen/logrus"
+	"time"
 )
 
 var (
-	watch string
-	cache sync.Map // key ID, value Item
+	cache database
 )
+
+type database struct {
+	path string
+	buf  sync.Map // key ID, value Item
+	min  int      // load files year range min
+	max  int      // load files year range max
+}
 
 // SetPath set csv path : /home/csv/.../
 // the path have files like 2015.csv 2016.csv ... year.csv
 func SetPath(path string) error {
-	path = filepath.Dir(path) // formatting
-	watch = path
-	if err := watcher(path); err != nil {
-		return err
-	}
-	return nil
+	return cache.setPath(path)
 }
 
-func watcher(path string) error {
-	w, err := fsnotify.NewWatcher()
+func (db *database) setPath(path string) error {
+	path, err := filepath.Abs(path) // formatting
 	if err != nil {
 		return err
 	}
-	if err := w.Add(path); err != nil {
-		w.Close()
-		return err
-	}
-	go func() {
-		log.Infof("Watch path %v start", path)
-		defer w.Close()
-		for strings.EqualFold(watch, path) {
-			select {
-			case ev := <-w.Events:
-				if ev.Op&fsnotify.Create == fsnotify.Create {
-					log.Println("创建文件 : ", ev.Name)
-				}
-				if ev.Op&fsnotify.Write == fsnotify.Write {
-					log.Println("写入文件 : ", ev.Name)
-				}
-				if ev.Op&fsnotify.Remove == fsnotify.Remove {
-					log.Println("删除文件 : ", ev.Name)
-				}
-			case err := <-w.Errors:
-				log.Errorf("Watch %v error: %v", path, err)
-				break
-			}
-		}
-		log.Infof("Watch path %v exit", path)
-	}()
+	db.path = path
 	return nil
 }
 
-type file struct {
-	start int64
-	end   int64
-	name  string
+func (db *database) csv(year int) string {
+	if len(db.path) == 0 {
+		db.path = "."
+	}
+	return fmt.Sprintf("%s/%04d.csv", db.path, year)
 }
 
-// SetRange set load csv item data time range
-func SetRange(start, end int64) error {
-	// TODO:
+func (db *database) setRange(start, end int64) error {
+	if end < start {
+		return fmt.Errorf("SetRange can't set end < start ts: %d,%d", end, start)
+	}
+	db.min = time.Unix(start, 0).Year()
+	db.max = time.Unix(end, 0).Year()
+	return nil
+}
+
+// load files data in buf
+func (db *database) load() error {
+	if db.min == 0 || db.max == 0 {
+		return fmt.Errorf("Load min %v max %v", db.min, db.max)
+	}
+	for year := db.min; year <= db.max; year++ {
+		r := reader{db.csv(year)}
+		data, err := r.all()
+		if err != nil {
+			return err
+		}
+		for i, v := range data {
+			it := parseItem(v, year, i)
+			db.buf.Store(it.ID, it) // store buf
+		}
+	}
 	return nil
 }
 

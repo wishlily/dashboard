@@ -2,6 +2,7 @@ package record
 
 import (
 	"bytes"
+	"io/ioutil"
 	"os"
 	"testing"
 
@@ -19,7 +20,7 @@ func testCfgClr(t *testing.T) {
 }
 
 func testCfgSet(t *testing.T) {
-	if f, err := os.Open("csv.toml"); err != nil {
+	if f, err := os.Open("test/csv.toml"); err != nil {
 		t.Fatal(err)
 	} else {
 		defer f.Close()
@@ -27,4 +28,14 @@ func testCfgSet(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
+}
+
+func testCSVSet(t *testing.T, f string, data []byte) {
+	if err := ioutil.WriteFile(f, data, 0644); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func testCSVClr(t *testing.T, f string) {
+	os.Remove(f)
 }
