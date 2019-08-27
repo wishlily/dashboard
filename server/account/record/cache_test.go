@@ -1,8 +1,39 @@
 package record
 
 import (
+	"fmt"
+	"reflect"
 	"testing"
+	"time"
 )
+
+func testDBSet(t *testing.T) {
+	const (
+		p  = "test/"
+		n1 = "2016.csv"
+		v1 = `type,time,class,account,amount,note
+R,2016-05-15 00:00:00,AA#BB,XX1#YY1,12.5,hello
+I,2016-01-13 00:00:00,cc#ss,BB1,30,
+`
+		n2 = "2017.csv"
+		v2 = `type,time,class,account,amount,note
+O,2017-02-21 00:00:00,DD#zz,fff,89.34,
+X,2017-03-20 00:00:00,gg#kl,adc,21,
+`
+	)
+	testCSVSet(t, p+n1, []byte(v1))
+	testCSVSet(t, p+n2, []byte(v2))
+}
+
+func testDBClr(t *testing.T) {
+	const (
+		p  = "test/"
+		n1 = "2016.csv"
+		n2 = "2017.csv"
+	)
+	testCSVClr(t, p+n1)
+	testCSVClr(t, p+n2)
+}
 
 func TestDBPath(t *testing.T) {
 	db := database{}
@@ -42,175 +73,117 @@ func TestDBCSV(t *testing.T) {
 	}
 }
 
-// func TestDBLoad(t *testing.T) {
-// 	db := database{min: 2016, max: 2016}
-// 	db.load()
-// }
+func TestDBLoad(t *testing.T) {
+	testDBSet(t)
+	defer testDBClr(t)
 
-// const _TEST_CSV_FILENAME = "csv-test.tmp"
+	db := database{min: 2016, max: 2017, path: "test"}
+	db.load()
+	num := 0
+	db.buf.Range(func(key interface{}, val interface{}) bool {
+		num++
+		fmt.Printf("%v -> %v\n", key, val)
+		return true
+	})
+	if num != 4 {
+		t.Fatalf("num should be 4 : %d", num)
+	}
+}
 
-// func testPrepare(data []byte) error {
-// 	if err := ioutil.WriteFile(_TEST_CSV_FILENAME, data, 0644); err != nil {
-// 		return err
-// 	}
-// 	return nil
-// }
+func TestDBPub(t *testing.T) {
+	testDBSet(t)
+	defer testDBClr(t)
 
-// func TestSplit(t *testing.T) {
-// 	var m Bill
-// 	m.Note = `其他内容#测试#内容 这样
-// 	#实验# ad dsd########`
-// 	note := m.split()
-// 	out := map[string]string{
-// 		"Default": "其他内容",
-// 		"测试":      "内容 这样",
-// 		"实验":      "ad dsd",
-// 	}
-// 	if !reflect.DeepEqual(out, note) {
-// 		t.Fatalf("Split DeepEqual: \n%v\v%v", note, out)
-// 	}
-// }
+	if err := SetPath("test"); err != nil {
+		t.Fatal(err)
+	}
+	// Get
+	its, err := Get("2016-05-15 00:00:00", "2017-02-21 00:00:00")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(its) != 2 {
+		t.Fatalf("Get should be 2 : %v", len(its))
+	}
+	fmt.Println(its)
+	bak := its
+	bak[0].ID = ""
+	bak[1].ID = ""
+	// Add
+	t1, _ := time.ParseInLocation(timeFMT, "2016-06-01 12:23:54", time.Local)
+	data := Item{Type: TypeL, Time: t1, Amount: 16, Note: "Add"}
+	if err := Add(data); err != nil {
+		t.Fatal(err)
+	}
+	its, err = Get("2016-05-15 00:00:00", "2017-02-21 00:00:00")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(its) != 3 || its[1].Note != "Add" {
+		t.Fatalf("Add should be 3 : %v", len(its))
+	}
+	fmt.Println(its)
+	data.ID = its[1].ID // update ID
+	// Chg
+	data.Note = "Chg"
+	t2, _ := time.ParseInLocation(timeFMT, "2017-01-01 12:23:54", time.Local)
+	data.Time = t2
+	old, err := Chg(data)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !reflect.DeepEqual(old, its[1]) {
+		t.Fatalf("Chg old item : %v", old)
+	}
+	its, err = Get("2016-05-15 00:00:00", "2017-02-21 00:00:00")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(its) != 3 || its[1].Note != "Chg" || !its[1].Time.Equal(t2) {
+		t.Fatalf("Chg should be 3 : %v", len(its))
+	}
+	fmt.Println(its)
+	data.ID = its[1].ID // update ID
+	// Del
+	if err := Del(data); err != nil {
+		t.Fatal(err)
+	}
+	its, err = Get("2016-05-15 00:00:00", "2017-02-21 00:00:00")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(its) != 2 {
+		t.Fatalf("Del should be 2 : %v", len(its))
+	}
+	fmt.Println(its)
+	its[0].ID = ""
+	its[1].ID = ""
+	if !reflect.DeepEqual(bak, its) {
+		t.Fatalf("Del : %v", its)
+	}
+}
 
-// func TestSort(t *testing.T) {
-// 	in := _Bills{
-// 		Bill{Time: "2018-06-18 03:23:12"},
-// 		Bill{Time: "2016-07-22 15:30:40"},
-// 		Bill{Time: "2016-08-05 13:00:08"},
-// 	}
-// 	out := _Bills{
-// 		Bill{Time: "2016-07-22 15:30:40"},
-// 		Bill{Time: "2016-08-05 13:00:08"},
-// 		Bill{Time: "2018-06-18 03:23:12"},
-// 	}
-// 	sort.Sort(in)
-// 	if !reflect.DeepEqual(in, out) {
-// 		t.Fatalf("Sort is not EXPECT: %v", in)
-// 	}
-// 	if !sort.IsSorted(in) {
-// 		t.Fatalf("Sort IsSorted not TRUE")
-// 	}
-// }
-
-// func TestReadAll(t *testing.T) {
-// 	var in = []byte(`
-// 交易类型,日期,类别,测试,子类,项目,成员,账户A,账户B,金额,份额,备注
-// 收入,2018-05-23,活期,test,银行卡,,本人,4312,,20,1,
-// 支出,2017-03-24,,test2,微信,,本人,2345,,12,1,
-// `)
-// 	out := _Bills{
-// 		Bill{
-// 			Time: "2017-03-24", Type: "支出", ClasSub: "微信", Member: "本人",
-// 			Account: "2345", Amount: 12, Units: 1,
-// 		},
-// 		Bill{
-// 			Time: "2018-05-23", Type: "收入", Class: "活期", ClasSub: "银行卡", Member: "本人",
-// 			Account: "4312", Amount: 20, Units: 1,
-// 		},
-// 	}
-// 	if err := testPrepare(in); err != nil {
-// 		t.Fatalf("Prepare : %v", err)
-// 	}
-
-// 	c := NewCSV(_TEST_CSV_FILENAME)
-// 	err := c.readAll()
-// 	if err != nil {
-// 		t.Fatalf("ReadAll %s: %v", _TEST_CSV_FILENAME, err)
-// 	}
-// 	for i, _ := range c.data {
-// 		c.data[i].ID = ""
-// 	}
-// 	if !reflect.DeepEqual(c.data, out) {
-// 		t.Fatalf("DeepEqual: \n%+v\n%+v", c.data, out)
-// 	}
-// 	os.Remove(_TEST_CSV_FILENAME)
-// }
-
-// func TestWrite(t *testing.T) {
-// 	in := _Bills{
-// 		Bill{
-// 			Time: "2007-03-04", Type: "支出", ClasSub: "微信",
-// 			Account: "2345",
-// 		},
-// 		Bill{
-// 			Time: "2008-05-03", Type: "收入", Member: "本人",
-// 			Account: "4312",
-// 		},
-// 	}
-
-// 	c := NewCSV(_TEST_CSV_FILENAME)
-// 	c.data = in
-// 	if err := c.writeAll(); err != nil {
-// 		t.Fatalf("WriteAll %s: %v", _TEST_CSV_FILENAME, err)
-// 	}
-// 	if err := c.readAll(); err != nil {
-// 		t.Fatalf("ReadAll %s: %v", _TEST_CSV_FILENAME, err)
-// 	}
-// 	for i, _ := range c.data {
-// 		c.data[i].ID = ""
-// 	}
-// 	if !reflect.DeepEqual(c.data, in) {
-// 		t.Fatalf("DeepEqual: %v", c.data)
-// 	}
-// 	/*** Write Test ***/
-// 	if err := c.write(in[0]); err != nil {
-// 		t.Fatalf("Write: %v", err)
-// 	}
-// 	in = _Bills{
-// 		Bill{
-// 			Time: "2007-03-04", Type: "支出", ClasSub: "微信",
-// 			Account: "2345",
-// 		},
-// 		Bill{
-// 			Time: "2007-03-04", Type: "支出", ClasSub: "微信",
-// 			Account: "2345",
-// 		},
-// 		Bill{
-// 			Time: "2008-05-03", Type: "收入", Member: "本人",
-// 			Account: "4312",
-// 		},
-// 	}
-// 	if err := c.readAll(); err != nil {
-// 		t.Fatalf("Write ReadAll: %v", err)
-// 	}
-// 	for i, _ := range c.data {
-// 		c.data[i].ID = ""
-// 	}
-// 	if !reflect.DeepEqual(c.data, in) {
-// 		t.Fatalf("Write DeepEqual: %v", c.data)
-// 	}
-// 	os.Remove(_TEST_CSV_FILENAME)
-// }
-
-// func TestDel(t *testing.T) {
-// 	c := NewCSV(_TEST_CSV_FILENAME)
-// 	c.cache = make(map[string]Bill)
-// 	if err := c.Del("1"); err != errcode.NFIND {
-// 		t.Fatalf("Del should have ERROR: %v", errcode.NFIND)
-// 	}
-// 	c.cache["1"] = Bill{
-// 		Time: "2007-03-04", Type: "支出", ClasSub: "微信",
-// 		Account: "2345",
-// 	}
-// 	c.cache["2"] = Bill{
-// 		Time: "2008-05-03", Type: "收入", Member: "本人",
-// 		Account: "4312",
-// 	}
-// 	if err := c.Del("1"); err != nil {
-// 		t.Fatalf("Del: %v", err)
-// 	}
-// 	in := c.data
-// 	for i, _ := range in {
-// 		in[i].ID = ""
-// 	}
-// 	out, err := c.Data()
-// 	if err != nil {
-// 		t.Fatalf("Data: %v", err)
-// 	}
-// 	for i, _ := range out {
-// 		out[i].ID = ""
-// 	}
-// 	if !reflect.DeepEqual(out, []Bill(in)) {
-// 		t.Fatalf("Del DeepEqual: \n%v\n%v", in, out)
-// 	}
-// 	os.Remove(_TEST_CSV_FILENAME)
-// }
+func TestDBErr(t *testing.T) {
+	data := Item{Time: time.Date(1999, 1, 1, 1, 1, 1, 1, time.Local)}
+	if err := Add(data); err == nil {
+		t.Fatalf("Add less 2000 year not support")
+	}
+	data.ID = "hello"
+	if err := Del(data); err == nil {
+		t.Fatalf("Del should be not found")
+	}
+	if _, err := Chg(data); err == nil {
+		t.Fatalf("Chg should be not found")
+	}
+	db := database{}
+	path := db.csv(2013)
+	if path != "./2013.csv" {
+		t.Fatalf("Get csv name %v", path)
+	}
+	if err := db.setRange(time.Unix(2019, 0), time.Unix(2016, 0)); err == nil {
+		t.Fatalf("Need start < end")
+	}
+	if err := db.load(); err == nil {
+		t.Fatalf("Need first set range")
+	}
+}

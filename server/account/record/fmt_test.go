@@ -76,7 +76,7 @@ func TestFmtTime(t *testing.T) {
 	} {
 		f.Time = tc.v
 		v := f.time()
-		if v.Format("2006-01-02 15:04:05") != tc.v {
+		if v.Format(timeFMT) != tc.v {
 			t.Fatalf("%d: should be %v: %v", i, tc.v, v)
 		}
 	}
@@ -188,9 +188,10 @@ func TestWriterAppend(t *testing.T) {
 	w := writer{f}
 	r := reader{f}
 
-	if err := w.append(format{}); err == nil {
-		t.Fatal("append not exist file should be error")
+	if err := w.append(format{}); err != nil {
+		t.Fatal("append not exist file should be ok")
 	}
+	os.Remove(f) // clear
 
 	r.all()
 	l := []format{}

@@ -11,7 +11,7 @@ type Tag int
 
 const (
 	// TagMember : member name
-	TagMember = iota
+	TagMember Tag = iota
 	// TagProj : project name
 	TagProj
 	// TagUnit : fund units

@@ -25,7 +25,7 @@ const (
 // Item csv record
 type Item struct {
 	csv      format
-	ID       string
+	ID       string // CAN'T CHG
 	Type     Type
 	Time     time.Time
 	Class    [classN]string
@@ -48,9 +48,38 @@ func (it Item) note(notes map[string]string) string {
 		delete(notes, "")
 	}
 	for k, v := range notes {
-		note += "#" + k + "#" + v
+		note += splitFMT + k + splitFMT + v
 	}
 	return note
+}
+
+// update csv data
+func (it *Item) update() {
+	it.csv.Type = it.Type.String()
+	it.csv.Time = it.Time.Format(timeFMT)
+	it.csv.Class = it.Class[ClassM]
+	if len(it.Class[ClassS]) > 0 {
+		it.csv.Class += splitFMT + it.Class[ClassS]
+	}
+	it.csv.Account = it.Account[AccountM]
+	if len(it.Account[AccountS]) > 0 {
+		it.csv.Account += splitFMT + it.Account[AccountS]
+	}
+	it.csv.Amount = it.Amount
+	notes := make(map[string]string)
+	if len(it.Member) > 0 {
+		notes[TagMember.String()] = it.Member
+	}
+	if len(it.Proj) > 0 {
+		notes[TagProj.String()] = it.Proj
+	}
+	if it.Unit != 0 {
+		notes[TagUnit.String()] = strconv.FormatInt(it.Unit, 10)
+	}
+	if it.Deadline.After(it.Time) {
+		notes[TagDeadline.String()] = it.Deadline.Format(timeFMT)
+	}
+	it.csv.Note = it.Note + it.note(notes)
 }
 
 func parseItem(data format, year, num int) Item {
@@ -60,18 +89,18 @@ func parseItem(data format, year, num int) Item {
 	it.Type = ParseType(it.csv.Type)
 	it.Time = it.csv.time()
 	class := it.csv.class()
-	if len(class) >= ClassS {
+	if len(class) > ClassS {
 		it.Class[ClassS] = class[ClassS]
 	}
-	if len(class) >= ClassM {
+	if len(class) > ClassM {
 		it.Class[ClassM] = class[ClassM]
 	}
 	it.Amount = it.csv.Amount
 	account := it.csv.account()
-	if len(account) >= AccountS {
+	if len(account) > AccountS {
 		it.Account[AccountS] = account[AccountS]
 	}
-	if len(account) >= AccountM {
+	if len(account) > AccountM {
 		it.Account[AccountM] = account[AccountM]
 	}
 	notes := it.csv.note()
@@ -85,7 +114,7 @@ func parseItem(data format, year, num int) Item {
 		case TagUnit:
 			it.Unit, _ = strconv.ParseInt(v, 10, 64)
 		case TagDeadline:
-			it.Deadline, _ = time.ParseInLocation("2006-01-02 15:04:05", v, time.Local)
+			it.Deadline, _ = time.ParseInLocation(timeFMT, v, time.Local)
 		default:
 			continue
 		}
@@ -93,4 +122,18 @@ func parseItem(data format, year, num int) Item {
 	}
 	it.Note = it.note(notes)
 	return it
+}
+
+type items []Item
+
+func (its items) Len() int {
+	return len(its)
+}
+
+func (its items) Swap(i, j int) {
+	its[i], its[j] = its[j], its[i]
+}
+
+func (its items) Less(i, j int) bool {
+	return its[i].Time.Before(its[j].Time)
 }

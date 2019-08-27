@@ -12,6 +12,11 @@ import (
 	"github.com/jszwec/csvutil"
 )
 
+const (
+	timeFMT  = "2006-01-02 15:04:05"
+	splitFMT = "#"
+)
+
 type format struct {
 	Type    string  `csv:"type"`
 	Time    string  `csv:"time"`    // 2006-01-02 15:04:05
@@ -23,7 +28,7 @@ type format struct {
 
 // #
 func (f format) split(data string) []string {
-	ss := strings.SplitN(data, "#", -1)
+	ss := strings.SplitN(data, splitFMT, -1)
 	isNull := func(r rune) bool {
 		return r == '\n' || r == ' ' || r == '\t'
 	}
@@ -55,7 +60,7 @@ func (f format) account() []string {
 }
 
 func (f format) time() time.Time {
-	t, _ := time.ParseInLocation("2006-01-02 15:04:05", f.Time, time.Local)
+	t, _ := time.ParseInLocation(timeFMT, f.Time, time.Local)
 	return t
 }
 
@@ -108,6 +113,10 @@ func (w writer) header() error {
 }
 
 func (w writer) append(data format) error {
+	r := reader{w.f}
+	if err := r.is(); err != nil {
+		return err
+	}
 	f, err := os.OpenFile(w.f, os.O_APPEND|os.O_WRONLY, os.ModeAppend)
 	if err != nil {
 		return err

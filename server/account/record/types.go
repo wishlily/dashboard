@@ -11,7 +11,7 @@ type Type int
 
 const (
 	// TypeI : income
-	TypeI = iota
+	TypeI Type = iota
 	// TypeO : pay out
 	TypeO
 	// TypeR : transfer

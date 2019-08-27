@@ -3,6 +3,7 @@ package record
 import (
 	"fmt"
 	"path/filepath"
+	"sort"
 	"sync"
 	"time"
 )
@@ -24,6 +25,67 @@ func SetPath(path string) error {
 	return cache.setPath(path)
 }
 
+// Get [start, end] time records from csv files
+// start|end: "yyyy-mm-dd hh:mm:ss"
+func Get(start, end string) ([]Item, error) {
+	t1, err := time.ParseInLocation(timeFMT, start, time.Local)
+	if err != nil {
+		return nil, err
+	}
+	t2, err := time.ParseInLocation(timeFMT, end, time.Local)
+	if err != nil {
+		return nil, err
+	}
+	if err := cache.setRange(t1, t2); err != nil {
+		return nil, err
+	}
+	var data items
+	cache.buf.Range(func(k interface{}, v interface{}) bool {
+		item := v.(Item) // no check data type
+		if (item.Time.After(t1) || item.Time.Equal(t1)) &&
+			(item.Time.Before(t2) || item.Time.Equal(t2)) {
+			data = append(data, item) // check time
+		}
+		return true
+	})
+	sort.Sort(data)
+	return data, nil
+}
+
+// Add one item in csv files
+func Add(data Item) error {
+	year := data.Time.Year()
+	if year <= 2000 {
+		return fmt.Errorf("Add item time year can't less 2000 : %v", year)
+	}
+	w := writer{cache.csv(year)}
+	data.update()
+	return w.append(data.csv)
+}
+
+// Del the item in csv files
+func Del(data Item) error {
+	if _, ok := cache.buf.Load(data.ID); !ok {
+		return fmt.Errorf("Del item not found ID %v", data.ID)
+	}
+	cache.buf.Delete(data.ID)
+	return cache.save(data.Time.Year())
+}
+
+// Chg (change) the item in csv files
+// return old item data
+func Chg(data Item) (old Item, err error) {
+	it, ok := cache.buf.Load(data.ID)
+	if !ok {
+		return old, fmt.Errorf("Chg not found ID %v", data.ID)
+	}
+	old = it.(Item) // no check data type
+	if err := Del(old); err != nil {
+		return old, err
+	}
+	return old, Add(data)
+}
+
 func (db *database) setPath(path string) error {
 	path, err := filepath.Abs(path) // formatting
 	if err != nil {
@@ -40,13 +102,13 @@ func (db *database) csv(year int) string {
 	return fmt.Sprintf("%s/%04d.csv", db.path, year)
 }
 
-func (db *database) setRange(start, end int64) error {
-	if end < start {
-		return fmt.Errorf("SetRange can't set end < start ts: %d,%d", end, start)
+func (db *database) setRange(start, end time.Time) error {
+	if end.Before(start) {
+		return fmt.Errorf("SetRange can't set end < start ts: %v,%v", end, start)
 	}
-	db.min = time.Unix(start, 0).Year()
-	db.max = time.Unix(end, 0).Year()
-	return nil
+	db.min = start.Year()
+	db.max = end.Year()
+	return db.load()
 }
 
 // load files data in buf
@@ -68,156 +130,24 @@ func (db *database) load() error {
 	return nil
 }
 
-// type _Bills []Bill
+// save files data in buf
+func (db *database) save(year int) error {
+	f := db.csv(year)
+	w := writer{f}
 
-// func (m _Bills) Len() int {
-// 	return len(m)
-// }
+	var data items
+	cache.buf.Range(func(k interface{}, v interface{}) bool {
+		item := v.(Item)              // no check data type
+		if item.Time.Year() == year { // check time
+			data = append(data, item)
+		}
+		return true
+	})
+	sort.Sort(data)
 
-// func (m _Bills) Swap(i, j int) {
-// 	m[i], m[j] = m[j], m[i]
-// }
-
-// func (m _Bills) Less(i, j int) bool {
-// 	return m[i].Time < m[j].Time
-// }
-
-// type CSV struct {
-// 	file  string
-// 	cache map[string]Bill
-// 	data  _Bills
-// }
-
-// func NewCSV(f string) *CSV {
-// 	var c CSV
-// 	c.file = f
-// 	_, err := os.Stat(f)
-// 	if err != nil {
-// 		if !os.IsExist(err) {
-// 			os.MkdirAll(path.Dir(f), 0644)
-// 			os.Create(f)
-// 			c.writeHeader()
-// 		}
-// 	}
-// 	return &c
-// }
-
-// func (c *CSV) Data() ([]Bill, error) {
-// 	if err := c.readAll(); err != nil {
-// 		return nil, err
-// 	}
-// 	return c.data, nil
-// }
-
-// func (c *CSV) Get(id string) (Bill, bool) {
-// 	v, ok := c.cache[id]
-// 	return v, ok
-// }
-
-// func (c *CSV) Add(data Bill) error {
-// 	return c.write(data)
-// }
-
-// func (c *CSV) Del(id string) error {
-// 	if _, ok := c.cache[id]; ok {
-// 		delete(c.cache, id)
-// 		c.updateData()
-// 		return c.writeAll()
-// 	}
-// 	return errcode.NFIND
-// }
-
-// func (c *CSV) Change(data Bill) error {
-// 	if _, ok := c.cache[data.ID]; ok {
-// 		c.cache[data.ID] = data
-// 		c.updateData()
-// 		return c.writeAll()
-// 	}
-// 	return errcode.NFIND
-// }
-
-// func (c *CSV) genID(n int) string {
-// 	filenameall := path.Base(c.file)
-// 	suffix := path.Ext(filenameall)
-// 	filename := strings.TrimSuffix(filenameall, suffix)
-// 	return fmt.Sprintf("%v%v%d", filename, time.Now().Unix(), n)
-// }
-
-// func (c *CSV) updateData() {
-// 	var data _Bills
-// 	for _, v := range c.cache {
-// 		data = append(data, v)
-// 	}
-// 	sort.Sort(data)
-// 	c.data = data
-// }
-
-// func (c *CSV) update(data []Bill) {
-// 	m := make(map[string]Bill)
-// 	for i, v := range data {
-// 		v.ID = c.genID(i)
-// 		m[v.ID] = v
-// 	}
-// 	c.cache = m
-// 	c.updateData()
-// }
-
-// func (c *CSV) readAll() error {
-// 	bytes, err := ioutil.ReadFile(c.file)
-// 	if err != nil {
-// 		return err
-// 	}
-// 	var data []Bill
-// 	if err := csvutil.Unmarshal(bytes, &data); err != nil {
-// 		return err
-// 	}
-// 	// generate ID & Map Data
-// 	c.update(data)
-// 	return nil
-// }
-
-// func (c *CSV) writeAll() error {
-// 	content, err := csvutil.Marshal(c.data)
-// 	if err != nil {
-// 		return err
-// 	}
-// 	if err := ioutil.WriteFile(c.file, content, 0644); err != nil {
-// 		return err
-// 	}
-// 	return nil
-// }
-
-// func (c *CSV) write(v Bill) error {
-// 	f, err := os.OpenFile(c.file, os.O_APPEND|os.O_WRONLY, os.ModeAppend)
-// 	if err != nil {
-// 		return err
-// 	}
-// 	defer f.Close()
-
-// 	w := csv.NewWriter(f)
-// 	enc := csvutil.NewEncoder(w)
-// 	enc.AutoHeader = false
-// 	if err := enc.Encode(v); err != nil {
-// 		return err
-// 	}
-// 	w.Flush()
-// 	if err := w.Error(); err != nil {
-// 		return err
-// 	}
-// 	return nil
-// }
-
-// func (c *CSV) writeHeader() error {
-// 	header, err := csvutil.Header(Bill{}, "csv")
-// 	if err != nil {
-// 		return err
-// 	}
-// 	f, err := os.OpenFile(c.file, os.O_WRONLY, 0644)
-// 	if err != nil {
-// 		return err
-// 	}
-// 	defer f.Close()
-
-// 	fmt.Fprintf(f, "%s\n", strings.Join(header, ","))
-// 	return nil
-// }
+	var store []format
+	for _, v := range data {
+		store = append(store, v.csv)
+	}
+	return w.all(store)
+}

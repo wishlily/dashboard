@@ -12,6 +12,13 @@ go get -u github.com/elazarl/go-bindata-assetfs/...
 
     $GOPATH/bin/go-bindata -o ./bindata.go ../assets/...
 
+# test
+
+    go test -failfast -v -cover -coverprofile=cover.out ./...
+    go tool cover -func=cover.out
+    go tool cover -html=cover.out -o cover.html
+	go tool cover -func=cover.out -o cover.all
+
 # config
 
 ```
