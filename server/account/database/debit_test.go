@@ -23,21 +23,15 @@ func TestDBDebit(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Create: %v", err)
 	}
-	if _, err := newBorrowTable(URL); err != nil {
-		t.Fatal(err)
-	}
-	if _, err := newLendTable(URL); err != nil {
-		t.Fatal(err)
-	}
 	// add
-	if err := db.add(v1); err != nil {
+	if err := db.Add(v1); err != nil {
 		t.Fatalf("Add: %v", err)
 	}
-	if err := db.add(v2); err != nil {
+	if err := db.Add(v2); err != nil {
 		t.Fatalf("Add : %v", err)
 	}
 	// get
-	vv, err := db.get()
+	vv, err := db.Get()
 	if err != nil {
 		t.Fatalf("Get %v", err)
 	}
@@ -48,17 +42,17 @@ func TestDBDebit(t *testing.T) {
 	v2 = vv[1]
 	// chg
 	v1.Amount = 200
-	if err := db.chg(v1); err != nil {
+	if err := db.Chg(v1); err != nil {
 		t.Fatalf("Change: %v", err)
 	}
-	if _, err := db.sel(v1.ID); err != nil {
+	if _, err := db.Sel(v1.ID); err != nil {
 		t.Fatalf("Get: %v", err)
 	}
 	// del
-	if err := db.del(v1); err != nil {
+	if err := db.Del(v1); err != nil {
 		t.Fatalf("Del: %v", err)
 	}
-	vv, err = db.get()
+	vv, err = db.Get()
 	if err != nil || len(vv) != 1 {
 		t.Fatalf("Data: %v,%v", err, vv)
 	}

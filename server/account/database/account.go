@@ -6,7 +6,6 @@ import (
 )
 
 const (
-	tableAccountName   = "account"
 	tableAccountIDName = "id"
 )
 
@@ -22,19 +21,21 @@ type Account struct {
 	Deadline int64   `db:"deadline" type:"INTEGER(64)"`
 }
 
-type accountTable struct {
+// AccountTable database table
+type AccountTable struct {
 	table
 }
 
-func newAccountTable(url string) (accountTable, error) {
-	db, err := newTable(url, tableAccountName, Account{})
+func newAccountTable(url string, name string) (AccountTable, error) {
+	db, err := newTable(url, name, Account{})
 	if err != nil {
-		return accountTable{}, err
+		return AccountTable{}, err
 	}
-	return accountTable{db}, nil
+	return AccountTable{db}, nil
 }
 
-func (a accountTable) get() ([]Account, error) {
+// Get all Account
+func (a AccountTable) Get() ([]Account, error) {
 	rows, err := a.table.get()
 	if err != nil {
 		return nil, err
@@ -53,7 +54,8 @@ func (a accountTable) get() ([]Account, error) {
 	return accs, nil
 }
 
-func (a accountTable) sel(id string) (Account, error) {
+// Sel get one Account by ID
+func (a AccountTable) Sel(id string) (Account, error) {
 	v := Account{ID: id}
 	rows, err := a.table.sel(tableAccountIDName, v)
 	if err != nil {
@@ -71,19 +73,22 @@ func (a accountTable) sel(id string) (Account, error) {
 	return v, fmt.Errorf("Not found id:%v in account table", id)
 }
 
-func (a accountTable) add(data Account) error {
+// Add one Account
+func (a AccountTable) Add(data Account) error {
 	data.Time = time.Now().Unix()
-	if _, err := a.sel(data.ID); err == nil {
+	if _, err := a.Sel(data.ID); err == nil {
 		return fmt.Errorf("Add should be unique id : %v", data.ID)
 	}
 	return a.table.insert(data)
 }
 
-func (a accountTable) chg(data Account) error {
+// Chg change one Account data
+func (a AccountTable) Chg(data Account) error {
 	data.Time = time.Now().Unix()
 	return a.table.update(tableAccountIDName, data)
 }
 
-func (a accountTable) del(data Account) error {
+// Del the Account by ID
+func (a AccountTable) Del(data Account) error {
 	return a.table.delete(tableAccountIDName, data)
 }

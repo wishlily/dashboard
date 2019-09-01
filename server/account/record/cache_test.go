@@ -128,13 +128,12 @@ func TestDBPub(t *testing.T) {
 	data.Note = "Chg"
 	t2, _ := time.ParseInLocation(timeFMT, "2017-01-01 12:23:54", time.Local)
 	data.Time = t2
-	old, err := Chg(data)
-	if err != nil {
+	if err := Chg(data); err != nil {
 		t.Fatal(err)
 	}
-	if !reflect.DeepEqual(old, its[1]) {
-		t.Fatalf("Chg old item : %v", old)
-	}
+	// if !reflect.DeepEqual(old, its[1]) {
+	// 	t.Fatalf("Chg old item : %v", old)
+	// }
 	its, err = Get("2016-05-15 00:00:00", "2017-02-21 00:00:00")
 	if err != nil {
 		t.Fatal(err)
@@ -172,7 +171,7 @@ func TestDBErr(t *testing.T) {
 	if err := Del(data); err == nil {
 		t.Fatalf("Del should be not found")
 	}
-	if _, err := Chg(data); err == nil {
+	if err := Chg(data); err == nil {
 		t.Fatalf("Chg should be not found")
 	}
 	db := database{}

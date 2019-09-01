@@ -73,17 +73,16 @@ func Del(data Item) error {
 }
 
 // Chg (change) the item in csv files
-// return old item data
-func Chg(data Item) (old Item, err error) {
+func Chg(data Item) error {
 	it, ok := cache.buf.Load(data.ID)
 	if !ok {
-		return old, fmt.Errorf("Chg not found ID %v", data.ID)
+		return fmt.Errorf("Chg not found ID %v", data.ID)
 	}
-	old = it.(Item) // no check data type
-	if err := Del(old); err != nil {
-		return old, err
+	old := it.(Item)                 // no check data type
+	if err := Del(old); err != nil { // time change
+		return err
 	}
-	return old, Add(data)
+	return Add(data)
 }
 
 func (db *database) setPath(path string) error {

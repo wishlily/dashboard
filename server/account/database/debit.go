@@ -6,8 +6,6 @@ import (
 )
 
 const (
-	tableBorrowName  = "borrow"
-	tableLendName    = "lend"
 	tableDebitIDName = "id"
 )
 
@@ -21,27 +19,21 @@ type Debit struct {
 	Deadline int64   `db:"deadline" type:"INTEGER(64)"`
 }
 
-type debitTable struct {
+// DebitTable database debit table
+type DebitTable struct {
 	table
 }
 
-func newBorrowTable(url string) (debitTable, error) {
-	return newDebitTable(url, tableBorrowName)
-}
-
-func newLendTable(url string) (debitTable, error) {
-	return newDebitTable(url, tableLendName)
-}
-
-func newDebitTable(url string, name string) (debitTable, error) {
+func newDebitTable(url string, name string) (DebitTable, error) {
 	db, err := newTable(url, name, Debit{})
 	if err != nil {
-		return debitTable{}, err
+		return DebitTable{}, err
 	}
-	return debitTable{db}, nil
+	return DebitTable{db}, nil
 }
 
-func (d debitTable) get() ([]Debit, error) {
+// Get all Debit
+func (d DebitTable) Get() ([]Debit, error) {
 	rows, err := d.table.get()
 	if err != nil {
 		return nil, err
@@ -60,7 +52,8 @@ func (d debitTable) get() ([]Debit, error) {
 	return debs, nil
 }
 
-func (d debitTable) sel(id string) (Debit, error) {
+// Sel one debit by ID
+func (d DebitTable) Sel(id string) (Debit, error) {
 	v := Debit{ID: id}
 	rows, err := d.table.sel(tableDebitIDName, v)
 	if err != nil {
@@ -79,24 +72,27 @@ func (d debitTable) sel(id string) (Debit, error) {
 }
 
 // gener one ID
-func (d debitTable) id() string {
+func (d DebitTable) id() string {
 	return fmt.Sprintf("%v", time.Now().UnixNano())
 }
 
-func (d debitTable) add(data Debit) error {
+// Add one Debit
+func (d DebitTable) Add(data Debit) error {
 	data.Time = time.Now().Unix()
 	data.ID = d.id()
-	if _, err := d.sel(data.ID); err == nil {
+	if _, err := d.Sel(data.ID); err == nil {
 		return fmt.Errorf("Add should be unique id : %v", data.ID)
 	}
 	return d.table.insert(data)
 }
 
-func (d debitTable) chg(data Debit) error {
+// Chg one Debit data
+func (d DebitTable) Chg(data Debit) error {
 	data.Time = time.Now().Unix()
 	return d.table.update(tableDebitIDName, data)
 }
 
-func (d debitTable) del(data Debit) error {
+// Del one Debit by ID
+func (d DebitTable) Del(data Debit) error {
 	return d.table.delete(tableDebitIDName, data)
 }

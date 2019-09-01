@@ -33,7 +33,7 @@ type Item struct {
 	Account  [accountN]string
 	Member   string
 	Proj     string // project & id
-	Unit     int64
+	Unit     float64
 	Deadline time.Time
 	Note     string
 }
@@ -74,7 +74,7 @@ func (it *Item) update() {
 		notes[TagProj.String()] = it.Proj
 	}
 	if it.Unit != 0 {
-		notes[TagUnit.String()] = strconv.FormatInt(it.Unit, 10)
+		notes[TagUnit.String()] = fmt.Sprintf("%.2f", it.Unit)
 	}
 	if it.Deadline.After(it.Time) {
 		notes[TagDeadline.String()] = it.Deadline.Format(timeFMT)
@@ -112,7 +112,7 @@ func parseItem(data format, year, num int) Item {
 		case TagProj:
 			it.Proj = v
 		case TagUnit:
-			it.Unit, _ = strconv.ParseInt(v, 10, 64)
+			it.Unit, _ = strconv.ParseFloat(v, 64)
 		case TagDeadline:
 			it.Deadline, _ = time.ParseInLocation(timeFMT, v, time.Local)
 		default:

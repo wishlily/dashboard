@@ -1,38 +1,46 @@
 package database
 
-var (
-	cache database
+const (
+	nameAccount = "account"
+	nameBorrow  = "borrow"
+	nameLend    = "lend"
 )
 
-type database struct {
-	account accountTable
-	borrow  debitTable
-	lend    debitTable
-}
-
-func init() {
-	const defaultURL = "database.db"
-	cache.account, _ = newAccountTable(defaultURL)
-	cache.borrow, _ = newBorrowTable(defaultURL)
-	cache.lend, _ = newLendTable(defaultURL)
-}
+var (
+	cacheA AccountTable
+	cacheB DebitTable
+	cacheL DebitTable
+)
 
 // SetURL set database url
 func SetURL(url string) error {
-	account, err := newAccountTable(url)
+	var err error
+	cacheA, err = newAccountTable(url, nameAccount)
 	if err != nil {
 		return err
 	}
-	cache.account = account
-	obj, err := newBorrowTable(url)
+	cacheB, err = newDebitTable(url, nameBorrow)
 	if err != nil {
 		return err
 	}
-	cache.borrow = obj
-	obj, err = newLendTable(url)
+	cacheL, err = newDebitTable(url, nameLend)
 	if err != nil {
 		return err
 	}
-	cache.lend = obj
 	return nil
+}
+
+// GetAccount get db table account
+func GetAccount() AccountTable {
+	return cacheA
+}
+
+// GetBorrow get db table borrow debit
+func GetBorrow() DebitTable {
+	return cacheB
+}
+
+// GetLend get db table lend debit
+func GetLend() DebitTable {
+	return cacheL
 }
