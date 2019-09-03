@@ -3,6 +3,7 @@ package database
 import (
 	"os"
 	"testing"
+	"time"
 )
 
 func TestDBDebit(t *testing.T) {
@@ -10,11 +11,11 @@ func TestDBDebit(t *testing.T) {
 	defer os.Remove(URL)
 
 	v1 := Debit{
-		Name:     "zhang3",
-		Amount:   200.02,
-		Note:     "replace",
-		Deadline: 123456,
+		Name:   "zhang3",
+		Amount: 200.02,
+		Note:   "replace",
 	}
+	v1.Deadline, _ = time.Parse("2006-01-02 15:04:05", "2006-01-01 12:00:00")
 	v2 := Debit{
 		Name:   "li4",
 		Amount: 98,
@@ -38,15 +39,17 @@ func TestDBDebit(t *testing.T) {
 	if len(vv) != 2 {
 		t.Fatalf("Get shoudle be 2 : %v", len(vv))
 	}
-	v1 = vv[0]
-	v2 = vv[1]
+	// v1 = vv[0]
+	// v2 = vv[1]
 	// chg
 	v1.Amount = 200
 	if err := db.Chg(v1); err != nil {
 		t.Fatalf("Change: %v", err)
 	}
-	if _, err := db.Sel(v1.ID); err != nil {
+	if v, err := db.Sel(vv[0].ID); err != nil {
 		t.Fatalf("Get: %v", err)
+	} else if v.Deadline.Unix() != v1.Deadline.Unix() {
+		t.Fatalf("Get: %v", v)
 	}
 	// del
 	if err := db.Del(v1); err != nil {

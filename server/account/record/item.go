@@ -2,6 +2,7 @@ package record
 
 import (
 	"fmt"
+	"sort"
 	"strconv"
 	"time"
 )
@@ -38,17 +39,18 @@ type Item struct {
 	Note     string
 }
 
-func (it Item) id(year, num int) string {
-	return fmt.Sprintf("%04d%v%d", year, time.Now().Unix(), num)
-}
-
 func (it Item) note(notes map[string]string) string {
 	note, ok := notes[""]
 	if ok {
 		delete(notes, "")
 	}
-	for k, v := range notes {
-		note += splitFMT + k + splitFMT + v
+	key := []string{}
+	for k := range notes {
+		key = append(key, k)
+	}
+	sort.Strings(key)
+	for _, k := range key {
+		note += splitFMT + k + splitFMT + notes[k]
 	}
 	return note
 }
@@ -85,7 +87,7 @@ func (it *Item) update() {
 func parseItem(data format, year, num int) Item {
 	var it Item
 	it.csv = data
-	it.ID = it.id(year, num)
+	it.ID = it.csv.hash()
 	it.Type = ParseType(it.csv.Type)
 	it.Time = it.csv.time()
 	class := it.csv.class()

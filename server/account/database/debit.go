@@ -1,6 +1,7 @@
 package database
 
 import (
+	"crypto/sha1"
 	"fmt"
 	"time"
 )
@@ -11,12 +12,18 @@ const (
 
 // Debit borrow|lend database
 type Debit struct {
-	Time     int64   `db:"time" type:"INTEGER(64)"`
-	ID       string  `db:"id" type:"VARCHAR(32)"`
-	Name     string  `db:"name" type:"VARCHAR(20)"`
-	Amount   float64 `db:"amount" type:"DECIMAL(32,3)"`
-	Note     string  `db:"note" type:"VARCHAR(32)"`
-	Deadline int64   `db:"deadline" type:"INTEGER(64)"`
+	Time     time.Time `db:"time" type:"TIMESTAMP"`
+	ID       string    `db:"id" type:"VARCHAR(32)"`
+	Name     string    `db:"name" type:"VARCHAR(20)"`
+	Amount   float64   `db:"amount" type:"DECIMAL(32,3)"`
+	Note     string    `db:"note" type:"VARCHAR(32)"`
+	Deadline time.Time `db:"deadline" type:"TIMESTAMP"`
+}
+
+func (d Debit) hash() string {
+	ss := fmt.Sprintf("%v:%v:%v", d.Name, d.Note, d.Deadline)
+	sum := sha1.Sum([]byte(ss))
+	return fmt.Sprintf("%x", sum)
 }
 
 // DebitTable database debit table
@@ -71,15 +78,10 @@ func (d DebitTable) Sel(id string) (Debit, error) {
 	return v, fmt.Errorf("Not found id:%v in %v table", id, d.table.name)
 }
 
-// gener one ID
-func (d DebitTable) id() string {
-	return fmt.Sprintf("%v", time.Now().UnixNano())
-}
-
 // Add one Debit
 func (d DebitTable) Add(data Debit) error {
-	data.Time = time.Now().Unix()
-	data.ID = d.id()
+	data.Time = time.Now()
+	data.ID = data.hash()
 	if _, err := d.Sel(data.ID); err == nil {
 		return fmt.Errorf("Add should be unique id : %v", data.ID)
 	}
@@ -88,11 +90,17 @@ func (d DebitTable) Add(data Debit) error {
 
 // Chg one Debit data
 func (d DebitTable) Chg(data Debit) error {
-	data.Time = time.Now().Unix()
+	if len(data.ID) == 0 {
+		data.ID = data.hash()
+	}
+	data.Time = time.Now()
 	return d.table.update(tableDebitIDName, data)
 }
 
 // Del one Debit by ID
 func (d DebitTable) Del(data Debit) error {
+	if len(data.ID) == 0 {
+		data.ID = data.hash()
+	}
 	return d.table.delete(tableDebitIDName, data)
 }

@@ -52,6 +52,16 @@ func Get(start, end string) ([]Item, error) {
 	return data, nil
 }
 
+// Sel one Item by id
+func Sel(data Item) (Item, error) {
+	v, ok := cache.buf.Load(data.ID)
+	if !ok {
+		return Item{}, fmt.Errorf("Sel item not found ID %v", data.ID)
+	}
+	// no check v type
+	return v.(Item), nil
+}
+
 // Add one item in csv files
 func Add(data Item) error {
 	year := data.Time.Year()

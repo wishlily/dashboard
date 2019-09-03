@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"testing"
+	"time"
 )
 
 func TestTable(t *testing.T) {
@@ -12,14 +13,14 @@ func TestTable(t *testing.T) {
 
 	type DB struct {
 		/* TAG db MUST SET */
-		OutradeNo string  `db:"out_trade_no" type:"VARCHAR(32)"`
-		Valid     bool    `db:"flag" type:"TINYINT(1)"`
-		Value     float64 `type:"DECIMAL(32,3)"`
-		TradeNo   string  `db:"-"`
-		Time      int64   `db:"time" type:"BIGINT"`
+		OutradeNo string    `db:"out_trade_no" type:"VARCHAR(32)"`
+		Valid     bool      `db:"flag" type:"TINYINT(1)"`
+		Value     float64   `type:"DECIMAL(32,3)"`
+		TradeNo   string    `db:"-"`
+		Time      time.Time `db:"time" type:"TIMESTAMP"`
 	}
-	v1 := DB{"654321", true, 233.23, "hello", 789}
-	v2 := DB{"123", false, -12.4, "world", 55}
+	v1 := DB{"654321", true, 233.23, "hello", time.Date(2016, 12, 25, 12, 3, 4, 0, time.Local)}
+	v2 := DB{"123", false, -12.4, "world", time.Date(2017, 11, 2, 10, 0, 0, 0, time.Local)}
 	db, err := newTable(URL, "test1", v1)
 	if err != nil {
 		t.Fatalf("Create: %v", err)
@@ -33,7 +34,7 @@ func TestTable(t *testing.T) {
 	}
 	// update
 	v1.Value = 123.123
-	v1.Time = 987
+	v1.Time = time.Date(2016, 11, 25, 12, 3, 4, 0, time.Local)
 	if err := db.update("out_trade_no", v1); err != nil {
 		t.Fatalf("Update: %v", err)
 	}
@@ -48,6 +49,10 @@ func TestTable(t *testing.T) {
 		if err != nil {
 			t.Fatalf("StructScan : %v", err)
 		}
+		if m.Time.Unix() != v1.Time.Unix() {
+			t.Fatalf("Equal : %+v,%+v", m.Time, v1.Time)
+		}
+		v1.Time = m.Time
 		if m != v1 {
 			t.Fatalf("Equal : %+v,%+v", m, v1)
 		}

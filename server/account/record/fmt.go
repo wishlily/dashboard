@@ -1,6 +1,7 @@
 package record
 
 import (
+	"crypto/sha1"
 	"encoding/csv"
 	"fmt"
 	"io/ioutil"
@@ -62,6 +63,12 @@ func (f format) account() []string {
 func (f format) time() time.Time {
 	t, _ := time.ParseInLocation(timeFMT, f.Time, time.Local)
 	return t
+}
+
+func (f format) hash() string {
+	ss := fmt.Sprintf("%v", f)
+	sum := sha1.Sum([]byte(ss))
+	return fmt.Sprintf("%x", sum)
 }
 
 type reader struct {

@@ -143,9 +143,16 @@ func TestDBPub(t *testing.T) {
 	}
 	fmt.Println(its)
 	data.ID = its[1].ID // update ID
+	// Sel
+	if v, err := Sel(data); err != nil || !reflect.DeepEqual(v, its[1]) {
+		t.Fatalf("%v:%v", err, v)
+	}
 	// Del
 	if err := Del(data); err != nil {
 		t.Fatal(err)
+	}
+	if _, err := Sel(data); err == nil {
+		t.Fatal("Should be error")
 	}
 	its, err = Get("2016-05-15 00:00:00", "2017-02-21 00:00:00")
 	if err != nil {

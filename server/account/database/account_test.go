@@ -3,6 +3,7 @@ package database
 import (
 	"os"
 	"testing"
+	"time"
 )
 
 func TestDBAccount(t *testing.T) {
@@ -10,15 +11,15 @@ func TestDBAccount(t *testing.T) {
 	defer os.Remove(URL)
 
 	v1 := Account{
-		Time:     12313,
-		ID:       "cd1234",
-		Type:     "CNY",
-		Unit:     123.12,
-		NUV:      0.8,
-		Class:    "open",
-		Input:    150,
-		Deadline: 654321,
+		Time:  time.Date(2005, 1, 1, 12, 0, 0, 0, time.Local),
+		ID:    "cd1234",
+		Type:  "CNY",
+		Unit:  123.12,
+		NUV:   0.8,
+		Class: "open",
+		Input: 150,
 	}
+	v1.Deadline, _ = time.Parse("2006-01-02 15:04:05", "2006-01-01 12:00:00")
 	v2 := v1
 	v2.ID = "ff2567"
 	db, err := newAccountTable(URL, "test")
@@ -43,7 +44,7 @@ func TestDBAccount(t *testing.T) {
 	v, err := db.Sel(v1.ID)
 	v1.Time = v.Time // time
 	if err != nil || v != v1 {
-		t.Fatalf("Get: %v: %v", err, v)
+		t.Fatalf("Get: %v: %v,%v", err, v, v1)
 	}
 	// get
 	vv, err := db.Get()

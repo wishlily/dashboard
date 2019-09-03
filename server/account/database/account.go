@@ -11,14 +11,14 @@ const (
 
 // Account database store account info
 type Account struct {
-	Time     int64   `db:"time" type:"INTEGER(64)"`
-	ID       string  `db:"id" type:"VARCHAR(20)"`
-	Type     string  `db:"type" type:"VARCHAR(3)"`
-	Unit     float64 `db:"unit" type:"DECIMAL(32,3)"`
-	NUV      float64 `db:"nuv" type:"DECIMAL(8,3)"` // net unit value
-	Class    string  `db:"class" type:"VARCHAR(5)"`
-	Input    float64 `db:"input" type:"DECIMAL(32,3)"`
-	Deadline int64   `db:"deadline" type:"INTEGER(64)"`
+	Time     time.Time `db:"time" type:"TIMESTAMP"`
+	ID       string    `db:"id" type:"VARCHAR(20)"`
+	Type     string    `db:"type" type:"VARCHAR(3)"`
+	Unit     float64   `db:"unit" type:"DECIMAL(32,3)"`
+	NUV      float64   `db:"nuv" type:"DECIMAL(8,3)"` // net unit value
+	Class    string    `db:"class" type:"VARCHAR(5)"`
+	Input    float64   `db:"input" type:"DECIMAL(32,3)"`
+	Deadline time.Time `db:"deadline" type:"TIMESTAMP"`
 }
 
 // AccountTable database table
@@ -75,7 +75,7 @@ func (a AccountTable) Sel(id string) (Account, error) {
 
 // Add one Account
 func (a AccountTable) Add(data Account) error {
-	data.Time = time.Now().Unix()
+	data.Time = time.Now()
 	if _, err := a.Sel(data.ID); err == nil {
 		return fmt.Errorf("Add should be unique id : %v", data.ID)
 	}
@@ -84,7 +84,7 @@ func (a AccountTable) Add(data Account) error {
 
 // Chg change one Account data
 func (a AccountTable) Chg(data Account) error {
-	data.Time = time.Now().Unix()
+	data.Time = time.Now()
 	return a.table.update(tableAccountIDName, data)
 }
 

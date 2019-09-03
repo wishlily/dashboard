@@ -12,22 +12,22 @@ func TestItemNote(t *testing.T) {
 	notes := map[string]string{
 		"a": "1",
 		"b": "2",
+		"c": "3",
 		"":  "xxx",
 	}
 	var it Item
 	v := it.note(notes)
-	if v != "xxx#a#1#b#2" &&
-		v != "xxx#b#2#a#1" {
+	if v != "xxx#a#1#b#2#c#3" {
 		t.Fatal(v)
 	}
 
 	notes = map[string]string{
-		"a": "1",
-		"b": "2",
+		"a":  "1",
+		"b":  "2",
+		"_C": "3",
 	}
 	v = it.note(notes)
-	if v != "#a#1#b#2" &&
-		v != "#b#2#a#1" {
+	if v != "#_C#3#a#1#b#2" {
 		t.Fatal(v)
 	}
 }

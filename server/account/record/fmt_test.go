@@ -215,3 +215,19 @@ func TestWriterAppend(t *testing.T) {
 		}
 	}
 }
+
+func TestHash(t *testing.T) {
+	for i, tc := range []struct {
+		a format
+		h string
+	}{
+		{format{"f", "g", "h", "i", 2.2, "j"}, "0c256529078a746d210e89ad1fa7654cde1565f7"},
+		{format{"A", "B", "C", "D", 1.1, "E"}, "75b49e8001cfde013878a14c6b7b105d36319aca"},
+		{format{"1", "2", "3", "4", 5.6, "7"}, "f2acc26a41691933977b74119d0201dd07e845f9"},
+	} {
+		// fmt.Printf("%d:%s\n", i, tc.a.hash())
+		if tc.a.hash() != tc.h {
+			t.Fatalf("%d:%v", i, tc.a.hash())
+		}
+	}
+}
