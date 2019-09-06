@@ -26,17 +26,17 @@ const (
 // Item csv record
 type Item struct {
 	csv      format
-	ID       string // CAN'T CHG
-	Type     Type
-	Time     time.Time
-	Class    [classN]string
-	Amount   float64
-	Account  [accountN]string
-	Member   string
-	Proj     string // project & id
-	Unit     float64
-	Deadline time.Time
-	Note     string
+	ID       string           `json:"key"` // CAN'T CHG
+	Type     Type             `json:"type"`
+	Time     time.Time        `json:"time"`
+	Class    [classN]string   `json:"class,omitempty"`
+	Amount   float64          `json:"amount"`
+	Account  [accountN]string `json:"account"`
+	Member   string           `json:"member,omitempty"`
+	Proj     string           `json:"proj,omitempty"` // project & id
+	Unit     float64          `json:"unit,omitempty"`
+	Deadline time.Time        `json:"deadline,omitempty"`
+	Note     string           `json:"note,omitempty"`
 }
 
 func (it Item) note(notes map[string]string) string {

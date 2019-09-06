@@ -46,7 +46,7 @@ func TestDBDebit(t *testing.T) {
 	if err := db.Chg(v1); err != nil {
 		t.Fatalf("Change: %v", err)
 	}
-	if v, err := db.Sel(vv[0].ID); err != nil {
+	if v, err := db.Sel(vv[0]); err != nil {
 		t.Fatalf("Get: %v", err)
 	} else if v.Deadline.Unix() != v1.Deadline.Unix() {
 		t.Fatalf("Get: %v", v)

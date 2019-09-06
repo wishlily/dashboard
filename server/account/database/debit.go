@@ -6,6 +6,16 @@ import (
 	"time"
 )
 
+// DebitType Account func input type
+type DebitType int
+
+const (
+	// Borrow Account Debit type
+	Borrow DebitType = iota
+	// Lend Account Debit type
+	Lend
+)
+
 const (
 	tableDebitIDName = "id"
 )
@@ -13,9 +23,11 @@ const (
 // Debit borrow|lend database
 type Debit struct {
 	Time     time.Time `db:"time" type:"TIMESTAMP"`
+	Type     DebitType `db:"-"`
 	ID       string    `db:"id" type:"VARCHAR(32)"`
 	Name     string    `db:"name" type:"VARCHAR(20)"`
 	Amount   float64   `db:"amount" type:"DECIMAL(32,3)"`
+	Account  string    `db:"-"`
 	Note     string    `db:"note" type:"VARCHAR(32)"`
 	Deadline time.Time `db:"deadline" type:"TIMESTAMP"`
 }
@@ -60,29 +72,31 @@ func (d DebitTable) Get() ([]Debit, error) {
 }
 
 // Sel one debit by ID
-func (d DebitTable) Sel(id string) (Debit, error) {
-	v := Debit{ID: id}
-	rows, err := d.table.sel(tableDebitIDName, v)
+func (d DebitTable) Sel(data Debit) (Debit, error) {
+	if len(data.ID) == 0 {
+		data.ID = data.hash()
+	}
+	rows, err := d.table.sel(tableDebitIDName, data)
 	if err != nil {
-		return v, err
+		return data, err
 	}
 	defer rows.Close()
 
 	for rows.Next() {
-		err = rows.StructScan(&v)
+		err = rows.StructScan(&data)
 		if err != nil {
-			return v, err
+			return data, err
 		}
-		return v, nil
+		return data, nil
 	}
-	return v, fmt.Errorf("Not found id:%v in %v table", id, d.table.name)
+	return data, fmt.Errorf("Not found id:%v in %v table", data.ID, d.table.name)
 }
 
 // Add one Debit
 func (d DebitTable) Add(data Debit) error {
 	data.Time = time.Now()
 	data.ID = data.hash()
-	if _, err := d.Sel(data.ID); err == nil {
+	if _, err := d.Sel(data); err == nil {
 		return fmt.Errorf("Add should be unique id : %v", data.ID)
 	}
 	return d.table.insert(data)
