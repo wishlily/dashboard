@@ -237,12 +237,7 @@ func (a Account) Update() error {
 		return a.updateAcct()
 	}
 	if a.isDebit() {
-		// 	if a.Debit.Type == db.Borrow {
-		// 		return
-		// 	}
-		// 	if a.Debit.Type == db.Lend {
-		// 		return
-		// 	}
+		return a.updateDebit()
 	}
 	return fmt.Errorf("No data in Account")
 }
@@ -302,38 +297,148 @@ func (a Account) updateAcct() error {
 	return rd.Add(r)
 }
 
-func (a Account) debit() error {
-	// TODO:
-	debit, err:=
+func (a Account) debit() (db.Debit, error) {
+	tab := db.GetLend()
+	if a.Debit.Type == db.Borrow {
+		tab = db.GetBorrow()
+	}
+	old, err := tab.Sel(a.Debit)
+	if err != nil { // not found
+		return old, tab.Add(a.Debit)
+	}
+	var empty db.Debit
+	debit := a.Debit
+	debit.ID = ""
+	debit.Type = 0
+	if debit == empty {
+		return old, tab.Del(a.Debit)
+	}
+	if a.Debit.Amount == 0 { // if amount zero delete it
+		return old, tab.Del(a.Debit)
+	}
+	return old, tab.Chg(a.Debit)
 }
 
-func (a Account) updebit(f func(db.Debit) error, opt func(*db.Account, float64)) error {
-	// add/chg/del db
-	if err := f(a.Debit); err != nil {
+func (a Account) updateDebit() error {
+	old, err := a.debit()
+	if err != nil {
 		return err
 	}
 	// account
 	acct, err := db.GetAccount().Sel(a.Debit.Account)
-	if err != nil {
-		return err
-	}
-	if a.Debit.Type == db.Borrow {
-		acct.Input += a.Debit.Amount
-	} else {
-		acct.Input -= a.Debit.Amount
+	if err == nil { // found
+		if a.Debit.Type == db.Borrow {
+			acct.Input += a.Debit.Amount - old.Amount
+		} else {
+			acct.Input -= a.Debit.Amount - old.Amount
+		}
+		if err := db.GetAccount().Chg(acct); err != nil {
+			return err
+		}
 	}
 	// add record
 	r := rd.Item{
 		Type:     rd.TypeX,
 		Time:     time.Now(),
-		Amount:   a.Debit.Amount,
+		Amount:   a.Debit.Amount - old.Amount,
 		Deadline: a.Debit.Deadline,
 		Note:     a.Debit.Note,
 		Member:   a.Debit.Name,
 	}
 	r.Account[rd.AccountM] = a.Debit.Account
-	if err := rd.Add(r); err != nil {
+	r.Class[rd.ClassM] = a.Debit.Type.String()
+	if r.Amount == 0 {
+		return nil
+	}
+	return rd.Add(r)
+}
+
+// MarshalJSON json encode
+func (a Account) MarshalJSON() ([]byte, error) {
+	type Acct db.Account
+	acct := &struct {
+		Acct
+		Time     string `json:"time"`
+		Deadline string `json:"deadline,omitempty"`
+		Member   string `json:"member,omitempty"`
+		Account  string `json:"account,omitempty"`
+		Note     string `json:"note,omitempty"`
+	}{
+		Acct:    (Acct)(a.Account),
+		Member:  a.Debit.Name,
+		Account: a.Debit.Account,
+		Note:    a.Debit.Note,
+	}
+	ts, _ := time.ParseInLocation(timeFMT, "2000-01-01 00:00:00", time.Local)
+	if a.isAccount() {
+		acct.Time = a.Account.Time.Format(timeFMT)
+		if a.Account.Deadline.Unix() >= ts.Unix() {
+			acct.Deadline = a.Account.Deadline.Format(timeFMT)
+		}
+	}
+	if a.isDebit() {
+		acct.Acct.Time = a.Debit.Time
+		acct.Acct.ID = a.Debit.ID
+		acct.Acct.Input = a.Debit.Amount
+		acct.Acct.Type = a.Debit.Type.String()
+		if a.Debit.Deadline.Unix() >= ts.Unix() {
+			acct.Deadline = a.Debit.Deadline.Format(timeFMT)
+		}
+	}
+	return json.Marshal(acct)
+}
+
+// UnmarshalJSON json decode
+func (a *Account) UnmarshalJSON(b []byte) error {
+	type Acct db.Account
+	acct := &struct {
+		*Acct
+		Time     string `json:"time"`
+		Deadline string `json:"deadline,omitempty"`
+		Member   string `json:"member,omitempty"`
+		Account  string `json:"account,omitempty"`
+		Note     string `json:"note,omitempty"`
+	}{
+		Acct: (*Acct)(&a.Account),
+	}
+	err := json.Unmarshal(b, &acct)
+	if err != nil {
 		return err
 	}
-	return db.GetAccount().Chg(acct)
+	debit := false // check type
+	if acct.Type == "B" {
+		a.Debit.Type = db.Borrow
+		debit = true
+	} else if acct.Type == "L" {
+		a.Debit.Type = db.Lend
+		debit = true
+	}
+	var tim time.Time
+	if len(acct.Time) > 0 {
+		tim, err = time.ParseInLocation(timeFMT, acct.Time, time.Local)
+		if err != nil {
+			return err
+		}
+	}
+	var deadline time.Time
+	if len(acct.Deadline) > 0 { // is have ?
+		deadline, err = time.ParseInLocation(timeFMT, acct.Deadline, time.Local)
+		if err != nil {
+			return err
+		}
+	}
+	if debit {
+		a.Debit.Time = tim
+		a.Debit.Deadline = deadline
+		a.Debit.Name = acct.Member
+		a.Debit.Account = acct.Account
+		a.Debit.Note = acct.Note
+		a.Debit.ID = acct.ID
+		a.Debit.Amount = acct.Input
+		a.Account = db.Account{} // clear
+		return nil
+	}
+	a.Account.Time = tim
+	a.Account.Deadline = deadline
+	return nil
 }

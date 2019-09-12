@@ -11,14 +11,14 @@ const (
 
 // Account database store account info
 type Account struct {
-	Time     time.Time `db:"time" type:"TIMESTAMP"`
-	ID       string    `db:"id" type:"VARCHAR(20)"`
-	Type     string    `db:"type" type:"VARCHAR(3)"`
-	Unit     float64   `db:"unit" type:"DECIMAL(32,3)"`
-	NUV      float64   `db:"nuv" type:"DECIMAL(8,3)"` // net unit value
-	Class    string    `db:"class" type:"VARCHAR(5)"`
-	Input    float64   `db:"input" type:"DECIMAL(32,3)"`
-	Deadline time.Time `db:"deadline" type:"TIMESTAMP"`
+	Time     time.Time `db:"time" type:"TIMESTAMP" json:"time"`
+	ID       string    `db:"id" type:"VARCHAR(20)" json:"id"`
+	Type     string    `db:"type" type:"VARCHAR(3)" json:"type"`
+	Unit     float64   `db:"unit" type:"DECIMAL(32,3)" json:"unit,omitempty"`
+	NUV      float64   `db:"nuv" type:"DECIMAL(8,3)" json:"nuv,omitempty"` // net unit value
+	Class    string    `db:"class" type:"VARCHAR(5)" json:"class,omitempty"`
+	Input    float64   `db:"input" type:"DECIMAL(32,3)" json:"amount"`
+	Deadline time.Time `db:"deadline" type:"TIMESTAMP" json:"deadline,omitempty"`
 }
 
 // AccountTable database table

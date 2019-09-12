@@ -16,6 +16,15 @@ const (
 	Lend
 )
 
+func (d DebitType) String() string {
+	if d == Borrow {
+		return "B"
+	} else if d == Lend {
+		return "L"
+	}
+	return "N"
+}
+
 const (
 	tableDebitIDName = "id"
 )
@@ -78,18 +87,18 @@ func (d DebitTable) Sel(data Debit) (Debit, error) {
 	}
 	rows, err := d.table.sel(tableDebitIDName, data)
 	if err != nil {
-		return data, err
+		return Debit{}, err
 	}
 	defer rows.Close()
 
 	for rows.Next() {
 		err = rows.StructScan(&data)
 		if err != nil {
-			return data, err
+			return Debit{}, err
 		}
 		return data, nil
 	}
-	return data, fmt.Errorf("Not found id:%v in %v table", data.ID, d.table.name)
+	return Debit{}, fmt.Errorf("Not found id:%v in %v table", data.ID, d.table.name)
 }
 
 // Add one Debit

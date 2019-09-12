@@ -4,6 +4,7 @@ import (
 	// "os"
 	"encoding/json"
 	"fmt"
+	"os"
 	"reflect"
 	"testing"
 	"time"
@@ -368,6 +369,48 @@ func TestAccount(t *testing.T) {
 			ok: false,
 			v:  Account{Account: db.Account{ID: "CD9007"}}, n: 3,
 		},
+		{ // add b
+			ok: true,
+			v:  Account{Debit: db.Debit{Type: db.Borrow, Name: "zhang3", Amount: 16.55, Account: "CH1234", Note: "CC", Deadline: time.Date(2020, 2, 1, 2, 23, 12, 22, time.Local)}}, n: 4,
+			a: []db.Account{{ID: "CH1234", Type: "FREE", Input: 1105.05, Unit: 10.5}},
+			d: []db.Debit{{ID: "fa7d63868e4c1835a18e5018b62a7faeda3204c1", Name: "zhang3", Amount: 16.55, Note: "CC", Deadline: time.Date(2020, 2, 1, 2, 23, 12, 22, time.Local)}},
+		},
+		{ // add b repeat
+			ok: true,
+			v:  Account{Debit: db.Debit{Type: db.Borrow, Name: "zhang3", Amount: 16.55, Account: "CH1234", Note: "CC", Deadline: time.Date(2020, 2, 1, 2, 23, 12, 22, time.Local)}}, n: 4,
+			a: []db.Account{{ID: "CH1234", Type: "FREE", Input: 1105.05, Unit: 10.5}},
+			d: []db.Debit{{ID: "fa7d63868e4c1835a18e5018b62a7faeda3204c1", Name: "zhang3", Amount: 16.55, Note: "CC", Deadline: time.Date(2020, 2, 1, 2, 23, 12, 22, time.Local)}},
+		},
+		{ // chg b
+			ok: true,
+			v:  Account{Debit: db.Debit{Type: db.Borrow, Name: "zhang3", Amount: 10.55, Account: "MO6677", Note: "CC", Deadline: time.Date(2020, 2, 1, 2, 23, 12, 22, time.Local)}}, n: 5,
+			a: []db.Account{{ID: "CH1234", Type: "FREE", Input: 1105.05, Unit: 10.5}, {ID: "MO6677", Type: "OK", Input: 194.5, Unit: 44}},
+			d: []db.Debit{{ID: "fa7d63868e4c1835a18e5018b62a7faeda3204c1", Name: "zhang3", Amount: 10.55, Note: "CC", Deadline: time.Date(2020, 2, 1, 2, 23, 12, 22, time.Local)}},
+		},
+		{ // del b
+			ok: true,
+			v:  Account{Debit: db.Debit{Type: db.Borrow, Name: "zhang3", Amount: 0, Account: "CH1234", Note: "CC", Deadline: time.Date(2020, 2, 1, 2, 23, 12, 22, time.Local)}}, n: 6,
+			a: []db.Account{{ID: "CH1234", Type: "FREE", Input: 1094.5, Unit: 10.5}, {ID: "MO6677", Type: "OK", Input: 194.5, Unit: 44}},
+			d: []db.Debit{{ID: "fa7d63868e4c1835a18e5018b62a7faeda3204c1", Note: "Del"}},
+		},
+		{ // add l
+			ok: true,
+			v:  Account{Debit: db.Debit{Type: db.Lend, Name: "li4", Amount: 50, Account: "CH1234"}}, n: 7,
+			a: []db.Account{{ID: "CH1234", Type: "FREE", Input: 1044.5, Unit: 10.5}},
+			d: []db.Debit{{ID: "0ef6832705b248cacd73b860cc95ee18693a5712", Name: "li4", Amount: 50}},
+		},
+		{ // chg l
+			ok: true,
+			v:  Account{Debit: db.Debit{Type: db.Lend, Name: "li4", Amount: 90, Account: "CH1234"}}, n: 8,
+			a: []db.Account{{ID: "CH1234", Type: "FREE", Input: 1004.5, Unit: 10.5}},
+			d: []db.Debit{{ID: "0ef6832705b248cacd73b860cc95ee18693a5712", Name: "li4", Amount: 90}},
+		},
+		{ // del l
+			ok: true,
+			v:  Account{Debit: db.Debit{Type: db.Lend, ID: "0ef6832705b248cacd73b860cc95ee18693a5712"}}, n: 9,
+			a: []db.Account{{ID: "CH1234", Type: "FREE", Input: 1004.5, Unit: 10.5}},
+			d: []db.Debit{{ID: "0ef6832705b248cacd73b860cc95ee18693a5712", Note: "Del"}},
+		},
 	} {
 		err := tc.v.Update()
 		if err != nil { // record func
@@ -424,10 +467,13 @@ func TestAccount(t *testing.T) {
 			}
 			v, err := tab.Sel(d)
 			if err != nil {
-				if !tc.ok {
+				if !tc.ok || d.Note == "Del" {
 					continue
 				}
 				t.Fatalf("%d,%d:%v", i, j, err)
+			}
+			if d.Note == "Del" {
+				t.Fatalf("%d,%d:%v", i, j, "should be del")
 			}
 			v.Time = d.Time
 			if v.Deadline.Unix() != d.Deadline.Unix() {
@@ -447,6 +493,29 @@ func TestAccount(t *testing.T) {
 	}
 }
 
+func TestAccountJson(t *testing.T) {
+	for i, a := range []Account{
+		Account{Account: db.Account{Time: time.Date(2016, 2, 1, 2, 23, 12, 0, time.Local), ID: "CD9007", Type: "A1", Unit: 0.55, NUV: 0.34, Class: "C1", Input: 100.55, Deadline: time.Date(2017, 2, 1, 2, 23, 12, 0, time.Local)}},
+		Account{},
+		Account{Debit: db.Debit{Type: db.Borrow, Name: "zhang3", Amount: 16.55, Account: "CH1234", Note: "CC", Deadline: time.Date(2020, 2, 1, 2, 23, 12, 0, time.Local)}},
+		Account{Debit: db.Debit{Type: db.Lend, Name: "zhang3", Amount: 16.55}},
+	} {
+		b, err := json.Marshal(a)
+		if err != nil {
+			t.Fatalf("%d:%v", i, err)
+		}
+		// fmt.Println(string(b))
+		var v Account
+		if err := json.Unmarshal(b, &v); err != nil {
+			t.Fatal(err)
+		}
+		// fmt.Println(v)
+		if !reflect.DeepEqual(a, v) {
+			t.Fatalf("%d: %+v,%+v", i, v, a)
+		}
+	}
+}
+
 func TestRemove(t *testing.T) {
-	// os.RemoveAll("db")
+	os.RemoveAll("db")
 }
