@@ -1,0 +1,45 @@
+#!/bin/bash
+
+ROOT=`pwd`
+
+function do_or_die() {
+	eval $* || exit $?
+}
+
+function test_server() {
+    cd $ROOT
+    cd ../server
+    go test -v -cover -coverprofile=cover.out ./...
+    go tool cover -func=cover.out
+    go tool cover -html=cover.out -o cover.html
+    go tool cover -func=cover.out -o cover.all
+    mv cover.* $ROOT
+}
+
+function build_server() {
+    cd $ROOT
+    cd ../server
+    # package assets
+    $GOPATH/bin/go-bindata -o ./bindata.go ../assets/...
+    go build -o dashboard bindata.go main.go
+    mv dashboard $ROOT
+}
+
+# define exit code
+rc=0
+
+case "$1" in
+    build)
+        build_server
+    ;;
+    test)
+        test_server
+    ;;
+    *)
+    echo $"Usage: $0 {build|test}"
+    echo $"    build     : Build project"
+	echo $"    test      : Start unit test"
+	exit 2
+esac
+
+exit $rc

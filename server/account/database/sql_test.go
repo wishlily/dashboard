@@ -87,6 +87,19 @@ func TestTable(t *testing.T) {
 	}
 }
 
+func TestTableDir(t *testing.T) {
+	type DB struct {
+		OutradeNo string `db:"out_trade_no" type:"VARCHAR(32)"`
+	}
+
+	const URL = "path/test.db"
+	defer os.RemoveAll("path")
+
+	if _, err := newTable(URL, "hello", DB{}); err != nil {
+		t.Fatal(err)
+	}
+}
+
 func TestTableErr(t *testing.T) {
 	const URL = "test.db"
 	defer os.Remove(URL)

@@ -351,10 +351,10 @@ func TestAccount(t *testing.T) {
 			v:  Account{Account: db.Account{ID: "CD9007", Type: "A1", Unit: 0.55, NUV: 0.34, Class: "C1", Input: 100.55, Deadline: time.Date(2017, 2, 1, 2, 23, 12, 22, time.Local)}}, n: 1,
 			a: []db.Account{{ID: "CD9007", Type: "A1", Unit: 0.55, NUV: 0.34, Class: "C1", Input: 100.55, Deadline: time.Date(2017, 2, 1, 2, 23, 12, 22, time.Local)}},
 		},
-		{ // add a repeat
-			ok: false,
-			v:  Account{Account: db.Account{ID: "CD9007", Type: "A1", Unit: 0.55, NUV: 0.34, Class: "C1", Input: 100.55, Deadline: time.Date(2017, 2, 1, 2, 23, 12, 22, time.Local)}}, n: 1,
-		},
+		// { // add a repeat
+		// 	ok: false,
+		// 	v:  Account{Account: db.Account{ID: "CD9007", Type: "A1", Unit: 0.55, NUV: 0.34, Class: "C1", Input: 100.55, Deadline: time.Date(2017, 2, 1, 2, 23, 12, 22, time.Local)}}, n: 1,
+		// },
 		{ // chg a
 			ok: true,
 			v:  Account{Account: db.Account{ID: "CD9007", Type: "A2", Class: "C2", Input: 200}}, n: 2,
@@ -418,6 +418,9 @@ func TestAccount(t *testing.T) {
 				continue
 			}
 			t.Fatalf("%d:%v", i, err)
+		}
+		if !tc.ok {
+			t.Fatalf("%d, should be error", i)
 		}
 		buf, err := rd.Get(min.Format(FMT), time.Now().Format(FMT)) // get record
 		if err != nil {
@@ -490,6 +493,44 @@ func TestAccount(t *testing.T) {
 				t.Fatalf("%d,%d:%v", i, j, v)
 			}
 		}
+	}
+}
+
+func TestAccounts(t *testing.T) { // TODO: not over
+	{
+		l1 := db.Debit{Name: "zhang3", Amount: 16}
+		if err := db.GetLend().Add(l1); err != nil {
+			t.Fatal(err)
+		}
+		b1 := db.Debit{Name: "li4", Amount: 55, Note: "Hello"}
+		if err := db.GetBorrow().Add(b1); err != nil {
+			t.Fatal(err)
+		}
+	}
+	a := []Account{
+		Account{Account: db.Account{ID: "CH1234", Type: "FREE", Input: 1004.5, Unit: 10.5}},
+		Account{Account: db.Account{ID: "MO6677", Type: "OK", Input: 194.5, Unit: 44}},
+		Account{Debit: db.Debit{ID: "6360dd38bae630f90b50a3b63b242d59d4d40765", Type: db.Lend, Amount: 16, Name: "zhang3"}},
+		Account{Debit: db.Debit{ID: "c170e6c2570e9ecac38bb5724b6fc4a1a31ec692", Type: db.Borrow, Amount: 55, Name: "li4", Note: "Hello"}},
+	}
+	v, err := Accounts()
+	if err != nil {
+		t.Fatal(err)
+	}
+	b, err := json.Marshal(v)
+	if err != nil {
+		t.Fatal(err)
+	}
+	fmt.Printf("%s\n", string(b))
+	// clear time info
+	var A []Account
+	for _, vv := range v {
+		vv.Account.Time = time.Time{}
+		vv.Debit.Time = time.Time{}
+		A = append(A, vv)
+	}
+	if !reflect.DeepEqual(a, A) {
+		t.Fatalf("%+v\n%+v", a, A)
 	}
 }
 

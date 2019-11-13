@@ -4,7 +4,7 @@
 # setup
 
 ```shell
-go get -u github.com/jteeuwen/go-bindata/...
+go get -u github.com/go-bindata/go-bindata/...
 go get -u github.com/elazarl/go-bindata-assetfs/...
 ```
 
@@ -26,6 +26,10 @@ title = "xxx"
 
 # Trace, Debug, Info, Warning, Error, Fatal, Panic
 log = "info"
+
+# server
+ip = 192.168.1.1
+port = 3000 # http server port
 
 [csv]
 path = "." # load & save path

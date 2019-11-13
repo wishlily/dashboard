@@ -30,6 +30,8 @@ func init() {
 // Parse : bind flags in config
 func Parse() {
 	flag.String("log", "info", "Set log level - Trace, Debug, Info, Warning, Error, Fatal and Panic")
+	flag.String("port", "8080", "Server port")
+	flag.String("ip", "0.0.0.0", "Server ip")
 
 	pflag.CommandLine.AddGoFlagSet(flag.CommandLine)
 	pflag.Parse()

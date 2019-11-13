@@ -26,3 +26,6 @@ _testmain.go
 # my build
 server/vendor
 server/bindata.go
+build/cover.*
+build/dashboard
+build/db/*

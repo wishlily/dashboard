@@ -23,7 +23,7 @@ func newTable(url string, name string, st interface{}) (table, error) {
 	_, err := os.Stat(url)
 	if err != nil {
 		if !os.IsExist(err) {
-			os.MkdirAll(path.Dir(url), 0644)
+			os.MkdirAll(path.Dir(url), 0755)
 		}
 	}
 	if err := db.attributes(reflect.TypeOf(st)); err != nil {

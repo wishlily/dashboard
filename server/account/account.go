@@ -46,6 +46,37 @@ func Records(start, end string) ([]Record, error) {
 	return records, nil
 }
 
+// Accounts get all
+func Accounts() ([]Account, error) {
+	as, err := db.GetAccount().Get()
+	if err != nil {
+		return nil, err
+	}
+	var accts []Account
+	for _, v := range as {
+		accts = append(accts, Account{Account: v})
+	}
+
+	ls, err := db.GetLend().Get()
+	if err != nil {
+		return nil, err
+	}
+	for _, v := range ls {
+		v.Type = db.Lend
+		accts = append(accts, Account{Debit: v})
+	}
+
+	bs, err := db.GetBorrow().Get()
+	if err != nil {
+		return nil, err
+	}
+	for _, v := range bs {
+		v.Type = db.Borrow
+		accts = append(accts, Account{Debit: v})
+	}
+	return accts, nil
+}
+
 // Record one csv item
 type Record struct {
 	rd.Item
@@ -259,13 +290,14 @@ func (a Account) isDebit() bool {
 }
 
 func (a Account) account() (db.Account, error) {
-	old, err := db.GetAccount().Sel(a.Account.ID)
-	if err != nil { // not found
-		return old, db.GetAccount().Add(a.Account)
-	}
 	var empty db.Account
 	acct := a.Account
 	acct.ID = ""
+
+	old, err := db.GetAccount().Sel(a.Account.ID)
+	if err != nil && acct != empty {
+		return old, db.GetAccount().Add(a.Account)
+	}
 	if acct == empty {
 		return old, db.GetAccount().Del(a.Account)
 	}
