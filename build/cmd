@@ -19,10 +19,12 @@ function test_server() {
 function build_server() {
     cd $ROOT
     cd ../server
+    cp -r ../assets ./
     # package assets
-    $GOPATH/bin/go-bindata -o ./bindata.go ../assets/...
+    $GOPATH/bin/go-bindata -o ./bindata.go assets/...
     go build -o dashboard bindata.go main.go
     mv dashboard $ROOT
+    rm -rf assets
 }
 
 # define exit code

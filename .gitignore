@@ -29,3 +29,4 @@ server/bindata.go
 build/cover.*
 build/dashboard
 build/db/*
+*/node_modules/*

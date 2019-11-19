@@ -9,8 +9,7 @@
 			"path": "server"
 		},
 		{
-			"name": "client",
-			"path": "client"
+			"path": "app"
 		}
 	],
 	"settings": {
@@ -24,9 +23,11 @@
 		},
 		"files.eol": "\n",
 		"files.exclude": {
+			"**/node_modules/**": true,
 			"**/vendor/**": true
 		},
 		"files.watcherExclude": {
+			"**/node_modules/**": true,
 			"**/vendor/**": true
 		}
 	}
