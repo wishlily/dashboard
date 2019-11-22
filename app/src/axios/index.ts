@@ -43,3 +43,62 @@ export const gitOauthInfo = (access_token: string) =>
 export const admin = () => get({ url: config.MOCK_AUTH_ADMIN });
 // 访问权限获取
 export const guest = () => get({ url: config.MOCK_AUTH_VISITOR });
+
+// API
+export interface IRecordParam {
+    key: string;
+    type: string;
+    time: string;
+    amount: number;
+    account: Array<string>;
+    unit?: number;
+    class?: Array<string>;
+    member?: string;
+    proj?: string;
+    note?: string;
+    deadline?: string;
+}
+
+export const getFinanceRecord = (t1: string, t2: string) => get({
+    url: config.API_FINANCE_RECORD,
+    config: {
+        params: {
+            start: t1,
+            end: t2
+        }
+    }
+});
+
+export const setFinanceRecord = (type: string, data: IRecordParam) => post({
+    url: config.API_FINANCE_RECORD,
+    data: {
+        type: type,
+        data: data
+    }
+});
+
+interface IAccountParam {
+    time: string;
+    id: string;
+    type: string;
+    amount: number;
+    unit?: number;
+    nuv?: number;
+    class?: string;
+    deadline?: string;
+    member?: string;
+    account?: string;
+    note?: string;
+}
+
+export const getFinanceAccount = (param?: string) => get({
+    url: config.API_FINANCE_ACCOUNT + '?' + param,
+});
+
+export const setFinanceAccount = (type: string, data: IAccountParam) => post({
+    url: config.API_FINANCE_ACCOUNT,
+    data: {
+        type: type,
+        data: data
+    }
+});

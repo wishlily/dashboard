@@ -3,8 +3,8 @@ import Routes from './routes';
 import DocumentTitle from 'react-document-title';
 import SiderCustom from './components/SiderCustom';
 import HeaderCustom from './components/HeaderCustom';
-import { Layout, notification, Icon } from 'antd';
-import { ThemePicker } from './components/widget';
+import { Layout} from 'antd';
+// import { ThemePicker } from './components/widget';
 import { connectAlita } from 'redux-alita';
 
 const { Content, Footer } = Layout;
@@ -31,54 +31,15 @@ class App extends Component<AppProps> {
         // fetchData({funcName: 'admin', stateName: 'auth'});
         this.getClientWidth();
         window.onresize = () => {
-            console.log('屏幕变化了');
+            // console.log('屏幕变化了');
             this.getClientWidth();
         };
-    }
-    componentDidMount() {
-        const openNotification = () => {
-            notification.open({
-                message: '博主-yezihaohao',
-                description: (
-                    <div>
-                        <p>
-                            GitHub地址：{' '}
-                            <a
-                                href="https://github.com/yezihaohao"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                            >
-                                https://github.com/yezihaohao
-                            </a>
-                        </p>
-                        <p>
-                            博客地址：{' '}
-                            <a
-                                href="https://yezihaohao.github.io/"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                            >
-                                https://yezihaohao.github.io/
-                            </a>
-                        </p>
-                    </div>
-                ),
-                icon: <Icon type="smile-circle" style={{ color: 'red' }} />,
-                duration: 0,
-            });
-            localStorage.setItem('isFirst', JSON.stringify(true));
-        };
-        const storageFirst = localStorage.getItem('isFirst');
-        if (storageFirst) {
-            const isFirst = JSON.parse(storageFirst);
-            !isFirst && openNotification();
-        }
     }
     getClientWidth = () => {
         // 获取当前浏览器宽度并设置responsive管理响应式
         const { setAlitaState } = this.props;
         const clientWidth = window.innerWidth;
-        console.log(clientWidth);
+        // console.log(clientWidth);
         setAlitaState({ stateName: 'responsive', data: { isMobile: clientWidth <= 992 } });
         // receiveData({isMobile: clientWidth <= 992}, 'responsive');
     };
@@ -94,7 +55,7 @@ class App extends Component<AppProps> {
             <DocumentTitle title={title}>
                 <Layout>
                     {!responsive.data.isMobile && <SiderCustom collapsed={this.state.collapsed} />}
-                    <ThemePicker />
+                    {/* <ThemePicker /> */}
                     <Layout style={{ flexDirection: 'column' }}>
                         <HeaderCustom
                             toggle={this.toggle}
@@ -105,7 +66,7 @@ class App extends Component<AppProps> {
                             <Routes auth={auth} />
                         </Content>
                         <Footer style={{ textAlign: 'center' }}>
-                            React-Admin ©{new Date().getFullYear()} Created by 865470087@qq.com
+                            Dashboard ©{new Date().getFullYear()}
                         </Footer>
                     </Layout>
                 </Layout>
