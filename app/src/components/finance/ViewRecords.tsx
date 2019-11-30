@@ -1,14 +1,13 @@
-/**
- * /app/money/tables
- */
-
-import React from 'react';
-import { Row, Col, Card } from 'antd';
-
+import React, {Component} from 'react';
+import {
+    Row,
+    Col,
+    Card
+} from 'antd';
 import RecordTable from './RecordTable';
 import BreadcrumbCustom from '../BreadcrumbCustom';
 
-class ViewRecords extends React.Component {
+class ViewRecords extends Component {
     render() {
         return (
             <div className="bill">

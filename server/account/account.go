@@ -112,6 +112,8 @@ func (r Record) Del() error {
 		return r.debit(rd.Del, db.GetBorrow().Del, r.sub)
 	case rd.TypeL:
 		return r.debit(rd.Del, db.GetLend().Del, r.add)
+	case rd.TypeX:
+		return rd.Del(r.Item) // only delete
 	}
 	return fmt.Errorf("Can't support %v type record add", r.Type)
 }

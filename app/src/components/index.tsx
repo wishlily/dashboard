@@ -28,6 +28,7 @@ import Cssmodule from './cssmodule';
 import MapUi from './ui/map';
 import QueryParams from './extension/QueryParams';
 import ViewRecords from './finance/ViewRecords'
+import ViewAccounts from './finance/ViewAccounts';
 
 const WysiwygBundle = Loadable({
     // 按需加载富文本配置
@@ -61,4 +62,5 @@ export default {
     MapUi,
     QueryParams,
     ViewRecords,
+    ViewAccounts
 } as any;

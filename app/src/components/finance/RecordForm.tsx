@@ -348,7 +348,7 @@ class RecordForm extends Component<RecordFormProps> {
     };
     render() {
         return (
-            <div>
+            <span>
                 <Button type="primary" onClick={this.showModal}>{this.props.title}</Button>
                 <CollectionCreateForm
                     ref={this.saveFormRef}
@@ -358,7 +358,7 @@ class RecordForm extends Component<RecordFormProps> {
                     data={this.props.data}
                     account={this.props.account}
                 />
-            </div>
+            </span>
         );
     }
 }

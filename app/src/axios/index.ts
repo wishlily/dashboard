@@ -77,7 +77,7 @@ export const setFinanceRecord = (type: string, data: IRecordParam) => post({
     }
 });
 
-interface IAccountParam {
+export interface IAccountParam {
     time: string;
     id: string;
     type: string;
@@ -91,9 +91,11 @@ interface IAccountParam {
     note?: string;
 }
 
-export const getFinanceAccount = (param?: string) => get({
-    url: config.API_FINANCE_ACCOUNT + '?' + param,
-});
+export const getFinanceAccount = (param?: string) => {
+    if (param)
+        return get({url: config.API_FINANCE_ACCOUNT + '?' + param});
+    return get({url: config.API_FINANCE_ACCOUNT});
+}
 
 export const setFinanceAccount = (type: string, data: IAccountParam) => post({
     url: config.API_FINANCE_ACCOUNT,

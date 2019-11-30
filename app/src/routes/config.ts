@@ -28,7 +28,7 @@ const menus: {
             subs: [
                 // TODO: not ok
                 { key: '/app/finance/record', title: '流水', component: 'ViewRecords' },
-                { key: '/app/finance/account', title: '账户', component: '' },
+                { key: '/app/finance/account', title: '账户', component: 'ViewAccounts' },
             ],
         },
     ],
