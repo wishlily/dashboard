@@ -27,11 +27,21 @@ function build_server() {
     rm -rf assets
 }
 
+function build_app() {
+    cd $ROOT
+    # clear old
+    rm -rf ../assets
+    cd ../app
+    yarn build
+    mv build ../assets
+}
+
 # define exit code
 rc=0
 
 case "$1" in
     build)
+        build_app
         build_server
     ;;
     test)

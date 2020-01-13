@@ -28,5 +28,7 @@ server/vendor
 server/bindata.go
 build/cover.*
 build/dashboard
+build/*.toml
 build/db/*
 */node_modules/*
+app/build/*

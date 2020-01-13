@@ -15,3 +15,7 @@ info There appears to be trouble with your network connection. Retrying...
 [2/4] Fetching packages...
 ```
 > because not use root !!
+
+# build
+
+    yarn build
