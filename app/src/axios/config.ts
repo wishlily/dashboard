@@ -21,3 +21,5 @@ export const GIT_USER = 'https://api.github.com/user';
 // bbc top news
 export const NEWS_BBC =
     'https://newsapi.org/v2/top-headlines?sources=bbc-news&apiKey=429904aa01f54a39a278a406acf50070';
+
+export const MIN_VAILD_TIME = "2000-01-01 00:00:00"

@@ -22,12 +22,13 @@ func TestPre(t *testing.T) {
 func TestRecordsOk(t *testing.T) {
 	/*
 		{
-			"key":   "xxx",
+			"uuid":  "xxx",
 			"type":  "xxx",
 			"time":  "yyyy-mm-dd hh:mm:ss",
 			"amount": 0.0,
 			"account":["xxx",...],
 			"unit":   0.0,                    // omitempty
+			"nuv":    0.0,                    // omitempty
 			"class":  ["xxx",...],            // omitempty
 			"member": "xxx",                  // omitempty
 			"proj":   "xxx",                  // omitempty
@@ -61,19 +62,20 @@ func TestRecordsOk(t *testing.T) {
 		{
 			f:      get,
 			param:  "start=" + url.QueryEscape("2018-03-19 00:12:34") + "&end=" + url.QueryEscape("2018-03-20 13:10:00"),
-			result: `[{"key":"c9c91795ea21b9966c010cea09b0e0fef1e10dd8","amount":12.45,"type":"I","time":"2018-03-20 12:23:54","account":["AB1234"]}]`,
+			result: `[{"uuid":"c9c91795ea21b9966c010cea09b0e0fef1e10dd8","amount":12.45,"type":"I","time":"2018-03-20 12:23:54","account":["AB1234"]}]`,
 		},
 		{
 			f: post,
 			param: `{
 				"type": "chg",
 				"data": {
-					"key": "c9c91795ea21b9966c010cea09b0e0fef1e10dd8",
+					"uuid": "c9c91795ea21b9966c010cea09b0e0fef1e10dd8",
 					"type": "O",
 					"time": "2018-03-19 12:23:54",
 					"amount": 20,
 					"account": ["AB1234"],
 					"unit":   10,
+					"nuv":    13,
 					"class": ["1", "2"],
 					"member": "li4",
 					"proj":   "he",
@@ -86,14 +88,14 @@ func TestRecordsOk(t *testing.T) {
 		{
 			f:      get,
 			param:  "start=" + url.QueryEscape("2018-03-19 00:12:34") + "&end=" + url.QueryEscape("2018-03-20 13:10:00"),
-			result: `[{"key":"89de8e7f0e207975ef5ce9c4483a5722a4ee9544","amount":20,"member":"li4","proj":"he","unit":10,"note":"hello","type":"O","time":"2018-03-19 12:23:54","class":["1","2"],"account":["AB1234"],"deadline":"2018-05-01 01:20:30"}]`,
+			result: `[{"uuid":"5db6071eaf0e88a0055a55084912154556953513","amount":20,"member":"li4","proj":"he","unit":10,"nuv":13,"note":"hello","type":"O","time":"2018-03-19 12:23:54","class":["1","2"],"account":["AB1234"],"deadline":"2018-05-01 01:20:30"}]`,
 		},
 		{
 			f: post,
 			param: `{
 				"type": "del",
 				"data": {
-					"key": "89de8e7f0e207975ef5ce9c4483a5722a4ee9544",
+					"uuid": "5db6071eaf0e88a0055a55084912154556953513",
 					"type": "O",
 					"time": "2018-03-19 12:23:54",
 					"amount": 20,

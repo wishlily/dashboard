@@ -9,8 +9,8 @@ import {
     Select
 } from 'antd';
 import moment from 'moment';
-import {FormComponentProps} from 'antd/lib/form/Form';
-import {IAccountParam} from '../../axios';
+import { FormComponentProps } from 'antd/lib/form/Form';
+import { IAccountParam, minVaildTS } from '../../axios';
 import { SelectValue } from 'antd/lib/select';
 
 interface IAccountForm {
@@ -193,9 +193,8 @@ class AccountForm extends Component<AccountFormProps> {
                 data.nuv = values.nuv
             }
             if (values.deadline) {
-                let t1 = moment().unix()
-                let t2 = moment(values.deadline).unix()
-                if (t2 > t1) {
+                let t = moment(values.deadline).unix()
+                if (t > minVaildTS()) {
                     data.deadline = values.deadline.format(timeFmt)
                 }
             }

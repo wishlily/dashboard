@@ -27,6 +27,7 @@ func TestTagString(t *testing.T) {
 		{TagMember, "member"},
 		{TagProj, "proj"},
 		{TagUnit, "unit"},
+		{TagNUV, "nuv"},
 		{TagDeadline, "deadline"},
 		{99, "unkown"},
 	} {
@@ -42,6 +43,7 @@ func TestTagString(t *testing.T) {
 		{TagMember, "成员"},
 		{TagProj, "项目"},
 		{TagUnit, "份额"},
+		{TagNUV, "净值"},
 		{TagDeadline, "截至日期"},
 		{99, "其他"},
 	} {
@@ -60,6 +62,7 @@ func TestTagParse(t *testing.T) {
 		{"member", TagMember},
 		{"proj", TagProj},
 		{"unit", TagUnit},
+		{"nuv", TagNUV},
 		{"unkown", tagEnd},
 	} {
 		if v := ParseTag(tc.a); tc.v != v {
@@ -74,6 +77,7 @@ func TestTagParse(t *testing.T) {
 		{"成员", TagMember},
 		{"项目", TagProj},
 		{"份额", TagUnit},
+		{"净值", TagNUV},
 		{"其他", tagEnd},
 	} {
 		if v := ParseTag(tc.a); tc.v != v {

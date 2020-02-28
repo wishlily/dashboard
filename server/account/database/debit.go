@@ -36,7 +36,7 @@ type Debit struct {
 	ID       string    `db:"id" type:"VARCHAR(32)"`
 	Name     string    `db:"name" type:"VARCHAR(20)"`
 	Amount   float64   `db:"amount" type:"DECIMAL(32,3)"`
-	Account  string    `db:"-"`
+	Account  string    `db:"account" type:"VARCHAR(20)"`
 	Note     string    `db:"note" type:"VARCHAR(32)"`
 	Deadline time.Time `db:"deadline" type:"TIMESTAMP"`
 }

@@ -19,3 +19,7 @@ info There appears to be trouble with your network connection. Retrying...
 # build
 
     yarn build
+
+# test
+
+- proxy: `package.json` -> `"proxy": "http://localhost:3000"`

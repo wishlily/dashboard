@@ -26,7 +26,7 @@ const (
 // Item csv record
 type Item struct {
 	csv      format
-	ID       string           `json:"key"` // CAN'T CHG
+	ID       string           `json:"uuid"` // CAN'T CHG
 	Type     Type             `json:"type"`
 	Time     time.Time        `json:"time"`
 	Class    [classN]string   `json:"class,omitempty"`
@@ -35,6 +35,7 @@ type Item struct {
 	Member   string           `json:"member,omitempty"`
 	Proj     string           `json:"proj,omitempty"` // project & id
 	Unit     float64          `json:"unit,omitempty"`
+	NUV      float64          `json:"nuv,omitempty"`
 	Deadline time.Time        `json:"deadline,omitempty"`
 	Note     string           `json:"note,omitempty"`
 }
@@ -78,7 +79,10 @@ func (it *Item) update() {
 	if it.Unit != 0 {
 		notes[TagUnit.String()] = fmt.Sprintf("%.2f", it.Unit)
 	}
-	if it.Deadline.After(it.Time) {
+	if it.NUV != 0 {
+		notes[TagNUV.String()] = fmt.Sprintf("%.2f", it.NUV)
+	}
+	if it.Deadline.Year() > 1900 {
 		notes[TagDeadline.String()] = it.Deadline.Format(timeFMT)
 	}
 	it.csv.Note = it.Note + it.note(notes)
@@ -113,6 +117,8 @@ func parseItem(data format, year, num int) Item {
 			it.Member = v
 		case TagProj:
 			it.Proj = v
+		case TagNUV:
+			it.NUV, _ = strconv.ParseFloat(v, 64)
 		case TagUnit:
 			it.Unit, _ = strconv.ParseFloat(v, 64)
 		case TagDeadline:

@@ -16,6 +16,8 @@ const (
 	TagProj
 	// TagUnit : fund units
 	TagUnit
+	// TagNUV : account nuv
+	TagNUV
 	// TagDeadline : deadline time
 	TagDeadline
 	tagEnd
@@ -39,6 +41,8 @@ func (t Tag) String() string {
 		return t.key(section, "proj")
 	case TagUnit:
 		return t.key(section, "unit")
+	case TagNUV:
+		return t.key(section, "nuv")
 	case TagDeadline:
 		return t.key(section, "deadline")
 	}

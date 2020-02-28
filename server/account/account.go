@@ -132,16 +132,25 @@ func (r Record) Chg() error {
 }
 
 func (r Record) add(acct *db.Account) {
-	acct.Unit += r.Unit
 	acct.Input += r.Amount
+	if acct.Unit*acct.NUV > 0 {
+		acct.Unit += r.Unit
+		acct.NUV += r.NUV
+	}
 }
 
 func (r Record) sub(acct *db.Account) {
-	acct.Unit -= r.Unit
-	if acct.Unit < 0 {
-		acct.Unit = 0 // Unit not zero
-	}
 	acct.Input -= r.Amount
+	if acct.Unit*acct.NUV > 0 {
+		acct.Unit -= r.Unit
+		acct.NUV -= r.NUV
+	}
+	if acct.Unit < 0 {
+		acct.Unit = 0 // clear
+	}
+	if acct.NUV < 0 {
+		acct.NUV = 0 // clear
+	}
 }
 
 // f : rd.Add rd.Del rd.Chg
@@ -213,7 +222,7 @@ func (r Record) MarshalJSON() ([]byte, error) {
 		Type: r.Type.String(),
 		Time: r.Time.Format(timeFMT),
 	}
-	if r.Deadline.Unix() >= r.Time.Unix() { // is valid ?
+	if r.Deadline.Year() > 2000 { // is valid ?
 		item.Deadline = r.Deadline.Format(timeFMT)
 	}
 	for i, v := range r.Class {
@@ -317,15 +326,13 @@ func (a Account) updateAcct() error {
 		Time:     time.Now(),
 		Amount:   a.Account.Input - old.Input,
 		Unit:     a.Account.Unit - old.Unit,
+		NUV:      a.Account.NUV - old.NUV,
 		Deadline: a.Account.Deadline,
 	}
 	r.Account[rd.AccountM] = a.Account.ID
 	r.Class[rd.ClassM] = a.Account.Type
 	r.Class[rd.ClassS] = a.Account.Class
-	if a.Account.NUV != 0 {
-		r.Note = fmt.Sprintf("%v", a.Account.NUV)
-	}
-	if r.Amount == 0 && r.Unit == 0 {
+	if r.Amount == 0 && r.Unit == 0 && r.NUV == 0 {
 		return nil // no add one record
 	}
 	return rd.Add(r)
@@ -362,9 +369,20 @@ func (a Account) updateDebit() error {
 	acct, err := db.GetAccount().Sel(a.Debit.Account)
 	if err == nil { // found
 		if a.Debit.Type == db.Borrow {
-			acct.Input += a.Debit.Amount - old.Amount
+			acct.Input += a.Debit.Amount
 		} else {
-			acct.Input -= a.Debit.Amount - old.Amount
+			acct.Input -= a.Debit.Amount
+		}
+		if err := db.GetAccount().Chg(acct); err != nil {
+			return err
+		}
+	}
+	acct, err = db.GetAccount().Sel(old.Account)
+	if err == nil { // found
+		if a.Debit.Type == db.Borrow {
+			acct.Input -= old.Amount
+		} else {
+			acct.Input += old.Amount
 		}
 		if err := db.GetAccount().Chg(acct); err != nil {
 			return err
@@ -383,6 +401,13 @@ func (a Account) updateDebit() error {
 	r.Class[rd.ClassM] = a.Debit.Type.String()
 	if r.Amount == 0 {
 		return nil
+	}
+	if len(old.ID) == 0 {
+		if a.Debit.Type == db.Borrow {
+			r.Type = rd.TypeB
+		} else {
+			r.Type = rd.TypeL
+		}
 	}
 	return rd.Add(r)
 }

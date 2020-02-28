@@ -7,8 +7,8 @@ import {
     Col
 } from 'antd';
 import moment from 'moment';
-import {IRecordParam} from '../../axios';
-import RecordForm, {IRecordForm} from './RecordForm';
+import { IRecordParam } from '../../axios';
+import RecordForm from './RecordForm';
 
 import {
     getFinanceRecord,
@@ -19,12 +19,20 @@ import {
 const { MonthPicker } = DatePicker;
 const timeFmt = 'YYYY-MM-DD HH:mm:ss';
 
+interface ITable {
+    type: string
+    time: string
+    amount: number
+    note: string
+}
+
 type RecordTableProps = {
 }
 interface RecordTableState {
     count: number;
     time: string;
     data: Array<IRecordParam>;
+    table: Array<ITable>;
     account: Array<string>;
 }
 
@@ -35,6 +43,7 @@ class RecordTable extends Component<RecordTableProps, RecordTableState> {
             count: 0,
             time: moment().format('YYYY-MM'),
             data: [],
+            table: [],
             account: [],
         }
         this.columns = [{
@@ -90,27 +99,41 @@ class RecordTable extends Component<RecordTableProps, RecordTableState> {
         }
     }
     columns: any;
+    convert(data: IRecordParam) {
+        var tabel: ITable = {
+            type: data.type,
+            time: data.time,
+            amount: data.amount,
+            note: ""
+        }
+        if (data.note) tabel.note = data.note
+        return tabel
+    }
     getData(tmonth: string) {
         const time = moment(tmonth + '-01 00:00:00', timeFmt)
         const t_start = time.format(timeFmt)
         const t_end = time.add(1, 'months').subtract(1, 'seconds').format(timeFmt)
-        getFinanceRecord(t_start, t_end).then(data => {
-            this.setState({ data: data })
+        getFinanceRecord(t_start, t_end).then(result => {
+            if (!result) return
+            var raw: Array<IRecordParam> = result
+            var data: Array<IRecordParam> = []
+            var table: Array<ITable> = []
+            raw.forEach(record => {
+                if (record.type !== '修正') {
+                    table.push(this.convert(record))
+                    data.push(record)
+                }
+            });
+            this.setState({ data: data, table: table})
         });
     }
-    onChange(values: IRecordForm, index: number) {
+    onChange(values: IRecordParam, index: number) {
         const datas = this.state.data
         const data = datas[index]
-        data.type = values.type
-        data.time = values.time.format(timeFmt)
-        data.account[0] = values.accountM
-        if (values.accountS !== undefined ) data.account[1] = values.accountS
-        data.amount = values.amount
-        if (values.member !== undefined ) data.member = values.member
-        if (values.class !== undefined ) data.class = values.class
-        data.note = values.note
-        datas[index] = data
-        setFinanceRecord('chg', data).then(res =>{
+        values.uuid = data.uuid
+        datas[index] = values
+        // console.log(data, values)
+        setFinanceRecord('chg', values).then(res =>{
             if (res && res.message === 'ok') {
                 this.setState({count: this.state.count+1})
             }
@@ -126,20 +149,9 @@ class RecordTable extends Component<RecordTableProps, RecordTableState> {
             }
         })
     }
-    onCreate(values: IRecordForm) {
-        const data: IRecordParam = {
-            key: '',
-            type: values.type,
-            time: values.time.format(timeFmt),
-            account: [values.accountM],
-            amount: values.amount,
-            member: values.member,
-            class: values.class,
-            note: values.note
-        }
-        if (values.accountS !== undefined) data.account[1] = values.accountS
-        // console.log("create: ", data)
-        setFinanceRecord('add', data).then(res =>{
+    onCreate(values: IRecordParam) {
+        // console.log("create: ", values)
+        setFinanceRecord('add', values).then(res =>{
             if (res && res.message === 'ok') {
                 this.setState({count: this.state.count+1})
             }
@@ -170,7 +182,7 @@ class RecordTable extends Component<RecordTableProps, RecordTableState> {
                         </Col>
                     </Row>
                 </div>
-                <Table bordered dataSource={this.state.data} columns={this.columns} />
+                <Table bordered dataSource={this.state.table} columns={this.columns} />
             </div>
         );
     }

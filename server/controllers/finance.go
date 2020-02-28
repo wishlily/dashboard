@@ -146,8 +146,12 @@ func (f *finance) Account(c *gin.Context) {
 		}
 	} else if strings.EqualFold(at.Type, "del") {
 		var a account.Account
-		a.Account.ID = at.Data.Account.ID
-		a.Debit.ID = at.Data.Debit.ID
+		if len(at.Data.Debit.ID) > 0 {
+			a.Debit = at.Data.Debit
+			a.Debit.Amount = 0
+		} else {
+			a.Account.ID = at.Data.Account.ID
+		}
 		if err := a.Update(); err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"message": err.Error()})

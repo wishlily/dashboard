@@ -4,6 +4,7 @@
 import axios from 'axios';
 import { get, post } from './tools';
 import * as config from './config';
+import moment from 'moment';
 
 export const getBbcNews = () => get({ url: config.NEWS_BBC });
 
@@ -44,14 +45,17 @@ export const admin = () => get({ url: config.MOCK_AUTH_ADMIN });
 // 访问权限获取
 export const guest = () => get({ url: config.MOCK_AUTH_VISITOR });
 
+export const minVaildTS = () => moment(config.MIN_VAILD_TIME).unix();
+
 // API
 export interface IRecordParam {
-    key: string;
+    uuid: string;
     type: string;
     time: string;
     amount: number;
     account: Array<string>;
     unit?: number;
+    nuv?: number;
     class?: Array<string>;
     member?: string;
     proj?: string;

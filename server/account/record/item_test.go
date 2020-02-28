@@ -36,7 +36,7 @@ func TestItemParseItem(t *testing.T) {
 	v := format{
 		Type: "O", Time: "2016-04-21 12:03:21",
 		Class: "x1#y1", Account: "AA#BB", Amount: 12.12,
-		Note: "xxx#member#mm#proj#pp#unit#23#deadline#2019-08-08 12:00:00#hello#hello",
+		Note: "xxx#member#mm#proj#pp#unit#23#deadline#2019-08-08 12:00:00#nuv#2.4#hello#hello",
 	}
 	item := parseItem(v, 2014, 0)
 	if len(item.ID) == 0 || item.ID == "0" {
@@ -45,7 +45,7 @@ func TestItemParseItem(t *testing.T) {
 	item.ID = ""
 	want := Item{csv: v, Type: TypeO, Time: time.Unix(1461211401, 0),
 		Class: [classN]string{"x1", "y1"}, Amount: 12.12, Account: [accountN]string{"AA", "BB"},
-		Member: "mm", Proj: "pp", Unit: 23, Deadline: time.Unix(1565236800, 0),
+		Member: "mm", Proj: "pp", Unit: 23, NUV: 2.4, Deadline: time.Unix(1565236800, 0),
 		Note: "xxx#hello#hello"}
 	if !reflect.DeepEqual(item, want) {
 		t.Fatalf("should be %v:%v", want, item)
@@ -56,7 +56,7 @@ func TestItemUpdate(t *testing.T) {
 	data := format{
 		Type: "O", Time: "2016-04-21 12:03:21",
 		Class: "x1#y1", Account: "AA#BB", Amount: 12.12,
-		Note: "xxx#member#mm#proj#pp#unit#23#deadline#2019-08-08 12:00:00#hello#hello",
+		Note: "xxx#member#mm#proj#pp#unit#23#deadline#2019-08-08 12:00:00#hello#hello#nuv#2.4",
 	}
 	it := parseItem(data, 2015, 0)
 	it.csv = format{}

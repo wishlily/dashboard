@@ -11,20 +11,23 @@ import {
     Select
 } from 'antd';
 import moment from 'moment';
-import {FormComponentProps} from 'antd/lib/form/Form';
-import {IRecordParam} from '../../axios';
+import { FormComponentProps } from 'antd/lib/form/Form';
+import { IRecordParam, minVaildTS } from '../../axios';
 
 interface IClass {
     [key: string]: any
 }
 
-export interface IRecordForm {
+interface IRecordForm {
     type: string;
     class?: Array<string>,
     time: moment.Moment,
+    deadline?: moment.Moment,
     accountM: string,
     accountS?: string,
     amount: number,
+    nuv?: number,
+    unit?: number,
     member?: string,
     note: string,
 }
@@ -70,25 +73,31 @@ class BasicForms extends Component<BasicFormsProps, BasicFormsState> {
         const s = classData[TYPEI][m][0]
         this.state = {
             data: {
-                key: '',
+                uuid: '',
                 type: TYPEI,
                 amount: 0,
                 account: [],
                 time: moment().format(timeFmt),
                 class: [m, s],
+                deadline: moment(0).format(timeFmt),
             }
         }
     }
     componentDidUpdate(prevProps: BasicFormsProps) {
         if (prevProps.data && prevProps.data !== this.state.data) {
             this.setState({ data: prevProps.data });
+            var dealine = "1970-01-01 08:00:00"
+            if (prevProps.data.deadline) dealine = prevProps.data.deadline
             prevProps.form.setFieldsValue({
                 type: prevProps.data.type,
                 class: prevProps.data.class,
                 time: moment(prevProps.data.time, timeFmt),
+                deadline: moment(dealine, timeFmt),
                 accountM: prevProps.data.account[0],
                 accountS: prevProps.data.account[1],
                 amount: prevProps.data.amount,
+                unit: prevProps.data.unit,
+                nuv: prevProps.data.nuv,
                 member: prevProps.data.member,
                 note: prevProps.data.note,
             });
@@ -195,36 +204,49 @@ class BasicForms extends Component<BasicFormsProps, BasicFormsState> {
                                 </Form>
                             </TabPane>
                             <TabPane tab={ TYPER } key={ TYPER }>
-                                <Form>
-                                    <FormItem {...formItemLayout} label="金额" colon={false}>
-                                        {getFieldDecorator('amount', { initialValue: this.state.data.amount })(
-                                            <InputNumber style={{ width: '100%' }} min={0} step={0.01} />
-                                        )}
+                                <Form {...formItemLayout}>
+                                    <FormItem label="金额" colon={false} style={{ marginBottom: 0 }}>
+                                        <FormItem style={{ display: 'inline-block', width: 'calc(50% - 12px)' }}>
+                                            {getFieldDecorator('amount', { initialValue: this.state.data.amount })(
+                                                <InputNumber style={{ width: '100%' }} min={0} step={0.01} />
+                                            )}
+                                        </FormItem>
+                                        <span style={{ display: 'inline-block', width: '12px', textAlign: 'center' }}>-</span>
+                                        <FormItem style={{ display: 'inline-block', width: 'calc(30% - 6px)' }}>
+                                            {getFieldDecorator('unit', { initialValue: this.state.data.unit })(
+                                                <InputNumber style={{ width: '100%' }} min={0} step={0.01} placeholder="份额" />
+                                            )}
+                                        </FormItem>
+                                        <span style={{ display: 'inline-block', width: '12px', textAlign: 'center' }}>-</span>
+                                        <FormItem style={{ display: 'inline-block', width: 'calc(20% - 6px)' }}>
+                                            {getFieldDecorator('nuv', { initialValue: this.state.data.nuv })(
+                                                <InputNumber style={{ width: '100%' }} min={0} step={0.01} placeholder="净值" />
+                                            )}
+                                        </FormItem>
                                     </FormItem>
-                                    <FormItem {...formItemLayout} label="时间" colon={false}>
+                                    <FormItem label="时间" colon={false}>
                                         {getFieldDecorator('time', { initialValue: moment(this.state.data.time, timeFmt) })(
                                             <DatePicker style={{ width: '100%' }} showTime format={timeFmt} />
                                         )}
                                     </FormItem>
-                                    <FormItem {...formItemLayout} label="转出" colon={false}>
+                                    <FormItem label="转出" colon={false}>
                                         {getFieldDecorator('accountM', { initialValue: this.state.data.account[0] })(
                                             <Select showSearch style={{ width: '100%' }} >
                                                 {accountOptions}
                                             </Select>
                                         )}
                                     </FormItem>
-                                    <FormItem {...formItemLayout} label="转入" colon={false}>
+                                    <FormItem label="转入" colon={false}>
                                         {getFieldDecorator('accountS', { initialValue: this.state.data.account[1] })(
                                             <Select showSearch style={{ width: '100%' }} >
                                                 {accountOptions}
                                             </Select>
                                         )}
                                     </FormItem>
-                                    <FormItem {...formItemLayout} label="备注" colon={false}>
+                                    <FormItem label="备注" colon={false}>
                                         {getFieldDecorator('note', { initialValue: this.state.data.note })(
                                             <TextArea
                                                 style={{ width: '100%' }}
-                                                placeholder="#份额#xx"
                                                 autosize
                                             />
                                         )}
@@ -232,34 +254,41 @@ class BasicForms extends Component<BasicFormsProps, BasicFormsState> {
                                 </Form>
                             </TabPane>
                             <TabPane tab={ TYPEL } key={ TYPEL }>
-                                <Form>
-                                    <FormItem {...formItemLayout} label="金额" colon={false}>
+                                <Form {...formItemLayout}>
+                                    <FormItem label="金额" colon={false}>
                                         {getFieldDecorator('amount', { initialValue: this.state.data.amount })(
                                             <InputNumber style={{ width: '100%' }} min={0} step={0.01} />
                                         )}
                                     </FormItem>
-                                    <FormItem {...formItemLayout} label="时间" colon={false}>
-                                        {getFieldDecorator('time', { initialValue: moment(this.state.data.time, timeFmt) })(
-                                            <DatePicker style={{ width: '100%' }} showTime format={timeFmt} />
-                                        )}
+                                    <FormItem label="时间" colon={false} style={{ marginBottom: 0 }}>
+                                        <FormItem style={{ display: 'inline-block', width: 'calc(50% - 12px)' }}>
+                                            {getFieldDecorator('time', { initialValue: moment(this.state.data.time, timeFmt) })(
+                                                <DatePicker format={timeFmt} />
+                                            )}
+                                        </FormItem>
+                                        <span style={{ display: 'inline-block', width: '24px', textAlign: 'center' }}>-</span>
+                                        <FormItem style={{ display: 'inline-block', width: 'calc(50% - 12px)' }}>
+                                            {getFieldDecorator('deadline', { initialValue: moment(this.state.data.deadline, timeFmt) })(
+                                                <DatePicker format={timeFmt} placeholder="截至日期" />
+                                            )}
+                                        </FormItem>
                                     </FormItem>
-                                    <FormItem {...formItemLayout} label="借贷人" colon={false}>
+                                    <FormItem label="借贷人" colon={false}>
                                         {getFieldDecorator('member', { initialValue: this.state.data.member })(
                                             <Input style={{ width: '100%' }} />
                                         )}
                                     </FormItem>
-                                    <FormItem {...formItemLayout} label="账户" colon={false}>
+                                    <FormItem label="账户" colon={false}>
                                         {getFieldDecorator('accountM', { initialValue: this.state.data.account[0] })(
                                             <Select showSearch style={{ width: '100%' }} >
                                                 {accountOptions}
                                             </Select>
                                         )}
                                     </FormItem>
-                                    <FormItem {...formItemLayout} label="备注" colon={false}>
+                                    <FormItem label="备注" colon={false}>
                                         {getFieldDecorator('note', { initialValue: this.state.data.note })(
                                             <TextArea
                                                 style={{ width: '100%' }}
-                                                placeholder="#还款时间#xxxx-xx-xx xx:xx:xx #还款金额#xx"
                                                 autosize
                                             />
                                         )}
@@ -267,34 +296,41 @@ class BasicForms extends Component<BasicFormsProps, BasicFormsState> {
                                 </Form>
                             </TabPane>
                             <TabPane tab={ TYPEB } key={ TYPEB }>
-                                <Form>
-                                    <FormItem {...formItemLayout} label="金额" colon={false}>
+                                <Form {...formItemLayout}>
+                                    <FormItem label="金额" colon={false}>
                                         {getFieldDecorator('amount', { initialValue: this.state.data.amount })(
                                             <InputNumber style={{ width: '100%' }} min={0} step={0.01} />
                                         )}
                                     </FormItem>
-                                    <FormItem {...formItemLayout} label="时间" colon={false}>
-                                        {getFieldDecorator('time', { initialValue: moment(this.state.data.time, timeFmt) })(
-                                            <DatePicker style={{ width: '100%' }} showTime format={timeFmt} />
-                                        )}
+                                    <FormItem label="时间" colon={false} style={{ marginBottom: 0 }}>
+                                        <FormItem style={{ display: 'inline-block', width: 'calc(50% - 12px)' }}>
+                                            {getFieldDecorator('time', { initialValue: moment(this.state.data.time, timeFmt) })(
+                                                <DatePicker format={timeFmt} />
+                                            )}
+                                        </FormItem>
+                                        <span style={{ display: 'inline-block', width: '24px', textAlign: 'center' }}>-</span>
+                                        <FormItem style={{ display: 'inline-block', width: 'calc(50% - 12px)' }}>
+                                            {getFieldDecorator('deadline', { initialValue: moment(this.state.data.deadline, timeFmt) })(
+                                                <DatePicker format={timeFmt} placeholder="截至日期" />
+                                            )}
+                                        </FormItem>
                                     </FormItem>
-                                    <FormItem {...formItemLayout} label="借贷人" colon={false}>
+                                    <FormItem label="借贷人" colon={false}>
                                         {getFieldDecorator('member', { initialValue: this.state.data.member })(
                                             <Input style={{ width: '100%' }} />
                                         )}
                                     </FormItem>
-                                    <FormItem {...formItemLayout} label="账户" colon={false}>
+                                    <FormItem label="账户" colon={false}>
                                         {getFieldDecorator('accountM', { initialValue: this.state.data.account[0] })(
                                             <Select showSearch style={{ width: '100%' }} >
                                                 {accountOptions}
                                             </Select>
                                         )}
                                     </FormItem>
-                                    <FormItem {...formItemLayout} label="备注" colon={false}>
+                                    <FormItem label="备注" colon={false}>
                                         {getFieldDecorator('note', { initialValue: this.state.data.note })(
                                             <TextArea
                                                 style={{ width: '100%' }}
-                                                placeholder="#还款时间#xxxx-xx-xx xx:xx:xx #还款金额#xx"
                                                 autosize
                                             />
                                         )}
@@ -314,7 +350,7 @@ const CollectionCreateForm: any = Form.create()(BasicForms);
 type RecordFormProps = {
     title: string;
     onClick?: () => void;
-    onCreate?: (v: IRecordForm) => void;
+    onCreate?: (v: IRecordParam) => void;
     account: Array<string>;
     data?: IRecordParam;
 }
@@ -337,8 +373,27 @@ class RecordForm extends Component<RecordFormProps> {
             if (err) {
                 return;
             }
-            // console.log('Received values of form: ', values);
-            if (this.props.onCreate) this.props.onCreate(values);
+            if (values.type === TYPEB) values.class = ['B']
+            if (values.type === TYPEL) values.class = ['L']
+            if (values.type === TYPER) values.class = undefined
+            var data: IRecordParam = {
+                uuid: '',
+                type: values.type,
+                time: values.time.format(timeFmt),
+                account: [values.accountM],
+                amount: values.amount,
+                unit: values.unit,
+                nuv: values.nuv,
+                member: values.member,
+                class: values.class,
+                note: values.note
+            }
+            if (values.accountS !== undefined) data.account[1] = values.accountS
+            if (values.deadline && moment(values.deadline).unix() > minVaildTS()) {
+                data.deadline = values.deadline.format(timeFmt)
+            }
+            // console.log('Received values of form: ', data);
+            if (this.props.onCreate) this.props.onCreate(data);
             form.resetFields();
             this.setState({ visible: false });
         });
