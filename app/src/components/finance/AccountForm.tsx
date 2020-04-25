@@ -138,7 +138,7 @@ class BasicForms extends Component<BasicFormsProps, BasicFormsState> {
                     </FormItem>
                     <FormItem {...formItemLayout} label="投入" colon={false}>
                         {getFieldDecorator('amount', { initialValue: this.state.data.amount })(
-                            <InputNumber style={{ width: '100%' }} min={0} step={0.01} />
+                            <InputNumber style={{ width: '100%' }} step={0.01} />
                         )}
                     </FormItem>
                     <FormItem {...formItemLayout} label="截至日期" colon={false}>
