@@ -43,9 +43,9 @@ func TestItemParseItem(t *testing.T) {
 		t.Fatalf("ID not be 0")
 	}
 	item.ID = ""
-	want := Item{csv: v, Type: TypeO, Time: time.Unix(1461211401, 0),
+	want := Item{csv: v, Type: TypeO, Time: time.Date(2016, 4, 21, 12, 3, 21, 0, time.Local),
 		Class: [classN]string{"x1", "y1"}, Amount: 12.12, Account: [accountN]string{"AA", "BB"},
-		Member: "mm", Proj: "pp", Unit: 23, NUV: 2.4, Deadline: time.Unix(1565236800, 0),
+		Member: "mm", Proj: "pp", Unit: 23, NUV: 2.4, Deadline: time.Date(2019, 8, 8, 12, 0, 0, 0, time.Local),
 		Note: "xxx#hello#hello"}
 	if !reflect.DeepEqual(item, want) {
 		t.Fatalf("should be %v:%v", want, item)

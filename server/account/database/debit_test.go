@@ -6,6 +6,17 @@ import (
 	"time"
 )
 
+func TestDBDebitHash(t *testing.T) {
+	d := Debit{
+		Name:     "z3",
+		Note:     "test",
+		Deadline: time.Date(2017, 1, 1, 23, 12, 34, 0, time.Local),
+	}
+	if d.hash() != "cbc2f2acd9b1e842673dba2d01d35cb3f4f15a47" {
+		t.Fatalf("%v", d.hash())
+	}
+}
+
 func TestDBDebit(t *testing.T) {
 	const URL = "test.db"
 	defer os.Remove(URL)

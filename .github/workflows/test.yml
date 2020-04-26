@@ -1,0 +1,36 @@
+name: Test
+on:
+  push:
+env:
+  GOPROXY: "https://goproxy.cn"
+
+jobs:
+  test:
+    name: Test
+    strategy:
+      matrix:
+        go: [1.13.x]
+        platform: [ubuntu-latest]
+    runs-on: ${{ matrix.platform }}
+    steps:
+    - name: Install build dependencies
+      run: |
+        apt-get update
+        apt-get install -y gcc
+    - name: Install Go
+      uses: actions/setup-go@v1
+      with:
+        go-version: 1.13.x
+    - name: Checkout code
+      uses: actions/checkout@v2
+    - name: Go unit test
+      run: |
+        cd build
+        ./cmd test
+    - name: Cache downloaded modules
+      uses: actions/cache@v1
+      with:
+        path: ~/go/pkg/mod
+        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+        restore-keys: |
+          ${{ runner.os }}-go-

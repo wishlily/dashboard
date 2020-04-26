@@ -9,10 +9,10 @@ function do_or_die() {
 function test_server() {
     cd $ROOT
     cd ../server
-    go test -v -cover -coverprofile=cover.out ./...
-    go tool cover -func=cover.out
-    go tool cover -html=cover.out -o cover.html
-    go tool cover -func=cover.out -o cover.all
+    do_or_die go test -v -cover -coverprofile=cover.out ./account/... ./config/... ./controllers/...
+    do_or_die go tool cover -func=cover.out
+    do_or_die go tool cover -html=cover.out -o cover.html
+    do_or_die go tool cover -func=cover.out -o cover.all
     mv cover.* $ROOT
 }
 

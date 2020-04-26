@@ -42,7 +42,7 @@ type Debit struct {
 }
 
 func (d Debit) hash() string {
-	ss := fmt.Sprintf("%v:%v:%v", d.Name, d.Note, d.Deadline)
+	ss := fmt.Sprintf("%v:%v:%v", d.Name, d.Note, d.Deadline.Format("2006 15:04:05"))
 	sum := sha1.Sum([]byte(ss))
 	return fmt.Sprintf("%x", sum)
 }

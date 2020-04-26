@@ -169,31 +169,31 @@ func TestRecord(t *testing.T) {
 			ok: true, f: AddRecord,
 			v: rd.Item{ID: "13", Type: rd.TypeB, Time: time.Date(2016, 12, 24, 23, 18, 19, 0, time.Local), Member: "zhang3", Account: [2]string{"CH1234", ""}, Unit: 10, Amount: 50, Deadline: time.Date(2017, 1, 1, 0, 0, 0, 0, time.Local)}, n: 3,
 			a: []db.Account{{ID: "CH1234", Type: "FREE", Input: AddAcct(0, 50), Unit: AddUnit(0, 0), NUV: AddNuv(0, 0)}},
-			d: []db.Debit{{ID: "c061fdc19522830d3f1c468eead59e507f35e40a", Name: "zhang3", Amount: 50, Deadline: time.Date(2017, 1, 1, 0, 0, 0, 0, time.Local)}},
+			d: []db.Debit{{ID: "630e62e41ed5e60983e5a75a3b16f813bd63b406", Name: "zhang3", Amount: 50, Deadline: time.Date(2017, 1, 1, 0, 0, 0, 0, time.Local)}},
 		},
 		{ // add b
 			ok: false, f: AddRecord,
 			v: rd.Item{ID: "14", Type: rd.TypeB, Time: time.Date(2016, 12, 24, 23, 18, 19, 0, time.Local), Member: "zhang3", Account: [2]string{"CH1234", ""}, Unit: 10, Amount: 50, Deadline: time.Date(2017, 1, 1, 0, 0, 0, 0, time.Local)}, n: 3,
 			a: []db.Account{{ID: "CH1234", Type: "FREE", Input: AddAcct(0, 0), Unit: AddUnit(0, 0), NUV: AddNuv(0, 0)}},
-			d: []db.Debit{{ID: "c061fdc19522830d3f1c468eead59e507f35e40a", Name: "zhang3", Amount: 50, Deadline: time.Date(2017, 1, 1, 0, 0, 0, 0, time.Local)}},
+			d: []db.Debit{{ID: "630e62e41ed5e60983e5a75a3b16f813bd63b406", Name: "zhang3", Amount: 50, Deadline: time.Date(2017, 1, 1, 0, 0, 0, 0, time.Local)}},
 		},
 		{ // add l
 			ok: true, f: AddRecord,
 			v: rd.Item{ID: "15", Type: rd.TypeL, Time: time.Date(2016, 12, 26, 12, 3, 4, 0, time.Local), Member: "li4", Account: [2]string{"CH1234", ""}, Amount: 60}, n: 4,
 			a: []db.Account{{ID: "CH1234", Type: "FREE", Input: SubAcct(0, 60), Unit: SubUnit(0, 0), NUV: SubNuv(0, 0)}},
-			d: []db.Debit{{ID: "0ef6832705b248cacd73b860cc95ee18693a5712", Name: "li4", Amount: 60}},
+			d: []db.Debit{{ID: "9e1fcaf8eb8aab49860892e908ce4c5852b09976", Name: "li4", Amount: 60}},
 		},
 		{ // add l
 			ok: false, f: AddRecord,
 			v: rd.Item{ID: "16", Type: rd.TypeL, Time: time.Date(2016, 12, 26, 12, 3, 4, 0, time.Local), Account: [2]string{"CH1234", ""}, Amount: 60}, n: 4,
 			a: []db.Account{{ID: "CH1234", Type: "FREE", Input: SubAcct(0, 0), Unit: SubUnit(0, 0), NUV: SubNuv(0, 0)}},
-			d: []db.Debit{{ID: "0ef6832705b248cacd73b860cc95ee18693a5712", Name: "li4", Amount: 60}},
+			d: []db.Debit{{ID: "9e1fcaf8eb8aab49860892e908ce4c5852b09976", Name: "li4", Amount: 60}},
 		},
 		{ // chg b
 			ok: true, f: ChgRecord,
 			v: rd.Item{ID: "ec6013a35aa2990b5f546e8862da8991066bd447", Type: rd.TypeB, Time: time.Date(2016, 12, 25, 23, 18, 19, 0, time.Local), Member: "zhang3", Account: [2]string{"MO6677", ""}, Unit: 5, Amount: 10, Deadline: time.Date(2017, 1, 1, 0, 0, 0, 0, time.Local)}, n: 4,
 			a: []db.Account{{ID: "CH1234", Type: "FREE", Input: SubAcct(0, 50), Unit: SubUnit(0, 0), NUV: SubNuv(0, 0)}, {ID: "MO6677", Type: "OK", Input: AddAcct(1, 10), Unit: AddUnit(1, 0), NUV: AddNuv(1, 0)}},
-			d: []db.Debit{{ID: "c061fdc19522830d3f1c468eead59e507f35e40a", Name: "zhang3", Amount: 10, Deadline: time.Date(2017, 1, 1, 0, 0, 0, 0, time.Local)}},
+			d: []db.Debit{{ID: "630e62e41ed5e60983e5a75a3b16f813bd63b406", Name: "zhang3", Amount: 10, Deadline: time.Date(2017, 1, 1, 0, 0, 0, 0, time.Local)}},
 		},
 		{ // chg b
 			ok: false, f: ChgRecord,
@@ -203,19 +203,19 @@ func TestRecord(t *testing.T) {
 			ok: true, f: DelRecord,
 			v: rd.Item{ID: "95b65a60dab4b1872fcf11db9da04ac3e914895c", Type: rd.TypeB, Time: time.Date(2016, 12, 25, 23, 18, 19, 0, time.Local), Member: "zhang3", Account: [2]string{"MO6677", ""}, Unit: 5, Amount: 10, Deadline: time.Date(2017, 1, 1, 0, 0, 0, 0, time.Local)}, n: 3,
 			a: []db.Account{{ID: "MO6677", Type: "OK", Input: SubAcct(1, 10), Unit: SubUnit(1, 0), NUV: SubNuv(1, 0)}},
-			d: []db.Debit{{ID: "c061fdc19522830d3f1c468eead59e507f35e40a", Note: "Del"}},
+			d: []db.Debit{{ID: "630e62e41ed5e60983e5a75a3b16f813bd63b406", Note: "Del"}},
 		},
 		{ // chg l
 			ok: true, f: ChgRecord,
 			v: rd.Item{ID: "7bc80a2afbb7ce2962604380f1acd218eb02b38b", Type: rd.TypeL, Time: time.Date(2016, 12, 26, 12, 3, 4, 0, time.Local), Member: "li4", Account: [2]string{"CH1234", ""}, Amount: 70}, n: 3,
 			a: []db.Account{{ID: "CH1234", Type: "FREE", Input: SubAcct(0, 10), Unit: SubUnit(0, 0), NUV: SubNuv(0, 0)}},
-			d: []db.Debit{{ID: "0ef6832705b248cacd73b860cc95ee18693a5712", Name: "li4", Amount: 70}},
+			d: []db.Debit{{ID: "9e1fcaf8eb8aab49860892e908ce4c5852b09976", Name: "li4", Amount: 70}},
 		},
 		{ // del l
 			ok: true, f: DelRecord,
 			v: rd.Item{ID: "1f2e6aaf03a8f2c4804d40db7b5f3bc8b86c6547", Type: rd.TypeL, Time: time.Date(2016, 12, 26, 12, 3, 4, 0, time.Local), Member: "li4", Account: [2]string{"CH1234", ""}, Amount: 70}, n: 2,
 			a: []db.Account{{ID: "CH1234", Type: "FREE", Input: AddAcct(0, 70), Unit: AddUnit(0, 0), NUV: AddNuv(0, 0)}},
-			d: []db.Debit{{ID: "0ef6832705b248cacd73b860cc95ee18693a5712", Note: "Del"}},
+			d: []db.Debit{{ID: "9e1fcaf8eb8aab49860892e908ce4c5852b09976", Note: "Del"}},
 		},
 	} {
 		if len(tc.v.ID) == 0 { // get & set
@@ -452,43 +452,43 @@ func TestAccount(t *testing.T) {
 			ok: true,
 			v:  Account{Debit: db.Debit{Type: db.Borrow, Name: "zhang3", Amount: 16.55, Account: "CH1234", Note: "CC", Deadline: time.Date(2020, 2, 1, 2, 23, 12, 22, time.Local)}}, n: 4,
 			a: []db.Account{{ID: "CH1234", Type: "FREE", Input: AddAcct(0, 16.55), Unit: AddUnit(0, 0), NUV: AddNuv(0, 0)}},
-			d: []db.Debit{{ID: "fa7d63868e4c1835a18e5018b62a7faeda3204c1", Name: "zhang3", Amount: 16.55, Account: "CH1234", Note: "CC", Deadline: time.Date(2020, 2, 1, 2, 23, 12, 22, time.Local)}},
+			d: []db.Debit{{ID: "1bce89aa49d62a57d52ad4ec85d280a86af1dbdd", Name: "zhang3", Amount: 16.55, Account: "CH1234", Note: "CC", Deadline: time.Date(2020, 2, 1, 2, 23, 12, 22, time.Local)}},
 		},
 		{ // add b repeat
 			ok: true,
 			v:  Account{Debit: db.Debit{Type: db.Borrow, Name: "zhang3", Amount: 16.55, Account: "CH1234", Note: "CC", Deadline: time.Date(2020, 2, 1, 2, 23, 12, 22, time.Local)}}, n: 4,
 			a: []db.Account{{ID: "CH1234", Type: "FREE", Input: SubAcct(0, 0), Unit: SubUnit(0, 0), NUV: SubNuv(0, 0)}},
-			d: []db.Debit{{ID: "fa7d63868e4c1835a18e5018b62a7faeda3204c1", Name: "zhang3", Amount: 16.55, Account: "CH1234", Note: "CC", Deadline: time.Date(2020, 2, 1, 2, 23, 12, 22, time.Local)}},
+			d: []db.Debit{{ID: "1bce89aa49d62a57d52ad4ec85d280a86af1dbdd", Name: "zhang3", Amount: 16.55, Account: "CH1234", Note: "CC", Deadline: time.Date(2020, 2, 1, 2, 23, 12, 22, time.Local)}},
 		},
 		{ // chg b
 			ok: true,
 			v:  Account{Debit: db.Debit{Type: db.Borrow, Name: "zhang3", Amount: 10.55, Account: "MO6677", Note: "CC", Deadline: time.Date(2020, 2, 1, 2, 23, 12, 22, time.Local)}}, n: 5,
 			a: []db.Account{{ID: "CH1234", Type: "FREE", Input: SubAcct(0, 16.55), Unit: SubUnit(0, 0), NUV: SubNuv(0, 0)}, {ID: "MO6677", Type: "OK", Input: AddAcct(1, 10.55), Unit: AddUnit(1, 0), NUV: AddNuv(1, 0)}},
-			d: []db.Debit{{ID: "fa7d63868e4c1835a18e5018b62a7faeda3204c1", Name: "zhang3", Amount: 10.55, Account: "MO6677", Note: "CC", Deadline: time.Date(2020, 2, 1, 2, 23, 12, 22, time.Local)}},
+			d: []db.Debit{{ID: "1bce89aa49d62a57d52ad4ec85d280a86af1dbdd", Name: "zhang3", Amount: 10.55, Account: "MO6677", Note: "CC", Deadline: time.Date(2020, 2, 1, 2, 23, 12, 22, time.Local)}},
 		},
 		{ // del b
 			ok: true,
 			v:  Account{Debit: db.Debit{Type: db.Borrow, Name: "zhang3", Amount: 0, Account: "CH1234", Note: "CC", Deadline: time.Date(2020, 2, 1, 2, 23, 12, 22, time.Local)}}, n: 6,
 			a: []db.Account{{ID: "CH1234", Type: "FREE", Input: SubAcct(0, 0), Unit: SubUnit(0, 0), NUV: SubNuv(0, 0)}, {ID: "MO6677", Type: "OK", Input: SubAcct(1, 10.55), Unit: SubUnit(1, 0), NUV: SubNuv(1, 0)}},
-			d: []db.Debit{{ID: "fa7d63868e4c1835a18e5018b62a7faeda3204c1", Note: "Del"}},
+			d: []db.Debit{{ID: "1bce89aa49d62a57d52ad4ec85d280a86af1dbdd", Note: "Del"}},
 		},
 		{ // add l
 			ok: true,
 			v:  Account{Debit: db.Debit{Type: db.Lend, Name: "li4", Amount: 50, Account: "CH1234"}}, n: 7,
 			a: []db.Account{{ID: "CH1234", Type: "FREE", Input: SubAcct(0, 50), Unit: SubUnit(0, 0), NUV: SubNuv(0, 0)}},
-			d: []db.Debit{{ID: "0ef6832705b248cacd73b860cc95ee18693a5712", Name: "li4", Amount: 50, Account: "CH1234"}},
+			d: []db.Debit{{ID: "9e1fcaf8eb8aab49860892e908ce4c5852b09976", Name: "li4", Amount: 50, Account: "CH1234"}},
 		},
 		{ // chg l
 			ok: true,
 			v:  Account{Debit: db.Debit{Type: db.Lend, Name: "li4", Amount: 90, Account: "CH1234"}}, n: 8,
 			a: []db.Account{{ID: "CH1234", Type: "FREE", Input: SubAcct(0, 40), Unit: SubUnit(0, 0), NUV: SubNuv(0, 0)}},
-			d: []db.Debit{{ID: "0ef6832705b248cacd73b860cc95ee18693a5712", Name: "li4", Amount: 90, Account: "CH1234"}},
+			d: []db.Debit{{ID: "9e1fcaf8eb8aab49860892e908ce4c5852b09976", Name: "li4", Amount: 90, Account: "CH1234"}},
 		},
 		{ // del l
 			ok: true,
-			v:  Account{Debit: db.Debit{Type: db.Lend, ID: "0ef6832705b248cacd73b860cc95ee18693a5712"}}, n: 9,
+			v:  Account{Debit: db.Debit{Type: db.Lend, ID: "9e1fcaf8eb8aab49860892e908ce4c5852b09976"}}, n: 9,
 			a: []db.Account{{ID: "CH1234", Type: "FREE", Input: AddAcct(0, 90), Unit: AddUnit(0, 0), NUV: AddNuv(0, 0)}},
-			d: []db.Debit{{ID: "0ef6832705b248cacd73b860cc95ee18693a5712", Note: "Del"}},
+			d: []db.Debit{{ID: "9e1fcaf8eb8aab49860892e908ce4c5852b09976", Note: "Del"}},
 		},
 	} {
 		err := tc.v.Update()
@@ -589,8 +589,8 @@ func TestAccounts(t *testing.T) { // TODO: not over
 	a := []Account{
 		Account{Account: db.Account{ID: "CH1234", Type: "FREE", Input: testAcct[0], Unit: testUnit[0], NUV: testNuv[0]}},
 		Account{Account: db.Account{ID: "MO6677", Type: "OK", Input: testAcct[1], Unit: testUnit[1], NUV: testNuv[1]}},
-		Account{Debit: db.Debit{ID: "6360dd38bae630f90b50a3b63b242d59d4d40765", Type: db.Lend, Amount: 16, Name: "zhang3"}},
-		Account{Debit: db.Debit{ID: "c170e6c2570e9ecac38bb5724b6fc4a1a31ec692", Type: db.Borrow, Amount: 55, Name: "li4", Note: "Hello"}},
+		Account{Debit: db.Debit{ID: "b94d706fe7f3369a446fe3ab68c73b3f89ca8e13", Type: db.Lend, Amount: 16, Name: "zhang3"}},
+		Account{Debit: db.Debit{ID: "d7a5a4f649f2209c254777d8cab7e490166dda2f", Type: db.Borrow, Amount: 55, Name: "li4", Note: "Hello"}},
 	}
 	v, err := Accounts()
 	if err != nil {
