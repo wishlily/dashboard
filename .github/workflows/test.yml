@@ -15,8 +15,8 @@ jobs:
     - name: Install build dependencies
       run: |
         apt-get update
-        apt-get install -y gcc git
-    - name: Install Go
+        apt-get install -y gcc git curl
+    - name: Install go
       uses: actions/setup-go@v1
       with:
         go-version: 1.13.x
@@ -26,6 +26,13 @@ jobs:
       run: |
         cd build
         ./cmd test
+    - run: pwd
+    - name: Upload coverage report to Codecov
+      uses: codecov/codecov-action@v1.0.6
+      with:
+        file: ./build/cover.out
+        flags: unittests
+        fail_ci_if_error: true
     - name: Cache downloaded modules
       uses: actions/cache@v1
       with:
