@@ -6,12 +6,13 @@ env:
 
 jobs:
   test:
-    name: Test
+    name: Debian
     strategy:
       matrix:
         go: [1.13.x]
         platform: [ubuntu-latest]
     runs-on: ${{ matrix.platform }}
+    container: debian:stable
     steps:
     - name: Install build dependencies
       run: |
