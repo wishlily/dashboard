@@ -1,8 +1,6 @@
 name: Test
 on:
   push:
-env:
-  GOPROXY: "https://goproxy.cn"
 
 jobs:
   test:
