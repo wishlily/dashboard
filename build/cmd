@@ -19,11 +19,11 @@ function test_server() {
 function build_server() {
     cd $ROOT
     cd ../server
-    cp -r ../assets ./
+    do_or_die cp -r ../assets ./
     # package assets
-    $GOPATH/bin/go-bindata -o ./bindata.go assets/...
-    go build -o dashboard bindata.go main.go
-    mv dashboard $ROOT
+    do_or_die $GOPATH/bin/go-bindata -o ./bindata.go assets/...
+    do_or_die go build -o dashboard bindata.go main.go
+    do_or_die mv dashboard $ROOT
     rm -rf assets
 }
 
@@ -32,8 +32,8 @@ function build_app() {
     # clear old
     rm -rf ../assets
     cd ../app
-    yarn build
-    mv build ../assets
+    do_or_die yarn build
+    do_or_die mv build ../assets
 }
 
 # define exit code
