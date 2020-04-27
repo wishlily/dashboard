@@ -1,6 +1,9 @@
 name: Test
 on:
   push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
 
 jobs:
   test:
@@ -19,14 +22,13 @@ jobs:
     - name: Install go
       uses: actions/setup-go@v1
       with:
-        go-version: 1.13.x
+        go-version: ${{ matrix.go }}
     - name: Checkout code
       uses: actions/checkout@v2
     - name: Go unit test
       run: |
         cd build
         ./cmd test
-    - run: pwd
     - name: Upload coverage report to Codecov
       uses: codecov/codecov-action@v1.0.6
       with:
