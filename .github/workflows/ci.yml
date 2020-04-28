@@ -1,0 +1,96 @@
+name: CI
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  test:
+    name: Test
+    strategy:
+      matrix:
+        go: [1.13.x]
+        platform: [ubuntu-latest]
+    runs-on: ${{ matrix.platform }}
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+    - name: Install go
+      uses: actions/setup-go@v1
+      with:
+        go-version: ${{ matrix.go }}
+    - name: Cache go modules
+      uses: actions/cache@v1
+      with:
+        path: ~/go/pkg/mod
+        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+        restore-keys: |
+          ${{ runner.os }}-go-
+    - name: Go unit test
+      run: |
+        cd build
+        ./cmd test
+    - name: Upload coverage report to Codecov
+      uses: codecov/codecov-action@v1.0.6
+      with:
+        file: ./build/cover.out
+        flags: unittests
+        fail_ci_if_error: true
+
+  build:
+    name: Build
+    strategy:
+      matrix:
+        node: [12.x]
+        go: [1.13.x]
+        platform: [ubuntu-latest]
+    runs-on: ${{ matrix.platform }}
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+    - name: Install nodejs
+      uses: actions/setup-node@v1
+      with:
+        node-version: ${{ matrix.node }}
+    - name: Install yarn
+      run: curl -o- -L https://yarnpkg.com/install.sh | bash
+    - name: Get yarn cache directory path
+      id: yarn-cache
+      run: echo "::set-output name=dir::$(yarn cache dir)"
+    - name: Cache dependencies with Yarn
+      uses: actions/cache@v1
+      with:
+        path: ${{ steps.yarn-cache.outputs.dir }}
+        key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-yarn-
+    - name: Install dependencies with Yarn
+      run: |
+        cd app
+        yarn install
+    - name: Install go
+      uses: actions/setup-go@v1
+      with:
+        go-version: ${{ matrix.go }}
+    - name: Cache go modules
+      uses: actions/cache@v1
+      with:
+        path: ~/go/pkg/mod
+        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+        restore-keys: |
+          ${{ runner.os }}-go-
+    - name: Install go-bindata
+      run: |
+        go get -u github.com/go-bindata/go-bindata/...
+    - name: Build dashboard
+      run: |
+        export GOPATH=~/go/
+        cd build
+        ./cmd build
+    - name: Upload bin
+      uses: actions/upload-artifact@v1
+      with:
+        name: bin
+        path: build/dashboard
